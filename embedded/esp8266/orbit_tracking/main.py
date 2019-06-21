@@ -11,6 +11,9 @@ import utime
 #from rotary_irq_esp import RotaryIRQ
 from machine import I2C, Pin, SPI
 
+from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
+
+
 oled_reset_pin = Pin(16, Pin.OUT)
 
 spi = SPI(1, baudrate=800000)
@@ -45,7 +48,7 @@ def do_connect():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     if not wlan.isconnected():
-        wlan.connect(ssid, password)
+        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
         while not wlan.isconnected():
 #            wdt.feed()
             pass
@@ -81,7 +84,7 @@ utime.sleep(1)
 
 while True:
     # earth heliocentric longitude
-    url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid=dan_appid"
+    url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid={0}".foramt(WOLFRAM_API_KEY)
     r = requests.get(url)
     print(r.text)
     elong = [x.strip() for x in r.text.split(',')]
@@ -96,7 +99,7 @@ while True:
    #oled stuff
    # make log10 orbit distances
         
-    url = "http://api.wolframalpha.com/v1/result?i=earth%20distance%20from%20sun%3F&appid=dan_appid"
+    url = "http://api.wolframalpha.com/v1/result?i=earth%20distance%20from%20sun%3F&appid={0}".foramt(WOLFRAM_API_KEY)
     r = requests.get(url)
     print(r.text)
     esdist = [x.strip() for x in r.text.split(',')]
@@ -129,7 +132,7 @@ while True:
         utime.sleep(2)
 
         # heliocentric longitude
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%3F&appid=dan_appid".format(name)
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         long = [x.strip() for x in r.text.split(',')]
@@ -142,7 +145,7 @@ while True:
         long_i[index] = float(long)         
      
         # perihelion data
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20next%20periapsis%3F&appid=dan_appid".format(name)
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20next%20periapsis%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         years = r.text
@@ -153,7 +156,7 @@ while True:
         years_i[index] = years
        
         # heliocentric longitude @ next perihelion
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%20at%20next%20perihelion%3F&appid=dan_appid".format(name)
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%20at%20next%20perihelion%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         longp = [x.strip() for x in r.text.split(',')]
@@ -166,7 +169,7 @@ while True:
         longp_i[index] = float(longp)
         
         # orbital period data from wolframalpha API
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20orbital%20period%20in%20julian%20years%3F&appid=dan_appid".format(name)
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20orbital%20period%20in%20julian%20years%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         period = [x.strip() for x in r.text.split()]
@@ -179,7 +182,7 @@ while True:
         period_i[index] = float(period)       
 
          # distance from sun
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20sun%3F&appid=dan_appid".format(name)
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20sun%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         sdist = [x.strip() for x in r.text.split(',')]
@@ -192,7 +195,7 @@ while True:
         sdist_i[index] = float(sdist)
         
         # distance from earth
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20earth%3F&appid=dan_appid".format(name)
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20earth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         dist = [x.strip() for x in r.text.split(',')]
