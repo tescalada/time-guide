@@ -84,7 +84,7 @@ utime.sleep(1)
 
 while True:
     # earth heliocentric longitude
-    url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid={0}".foramt(WOLFRAM_API_KEY)
+    url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid={0}".format(WOLFRAM_API_KEY)
     r = requests.get(url)
     print(r.text)
     elong = [x.strip() for x in r.text.split(',')]
@@ -99,7 +99,7 @@ while True:
    #oled stuff
    # make log10 orbit distances
         
-    url = "http://api.wolframalpha.com/v1/result?i=earth%20distance%20from%20sun%3F&appid={0}".foramt(WOLFRAM_API_KEY)
+    url = "http://api.wolframalpha.com/v1/result?i=earth%20distance%20from%20sun%3F&appid={0}".format(WOLFRAM_API_KEY)
     r = requests.get(url)
     print(r.text)
     esdist = [x.strip() for x in r.text.split(',')]
