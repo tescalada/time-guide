@@ -77,7 +77,7 @@ names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
 oled.fill(0)
 oled.text('begin loop',0,0,1)
 oled.show()
-utime.sleep(2)
+utime.sleep(1)
 
 while True:
     # earth heliocentric longitude
