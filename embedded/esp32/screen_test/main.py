@@ -4,7 +4,6 @@ import network
 import ssd1306
 import utime
 
-#from rotary_irq_esp import RotaryIRQ
 from machine import I2C, Pin
 from credentials import WIFI_SSID, WIFI_PASSWORD
 
