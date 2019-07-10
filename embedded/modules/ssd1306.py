@@ -1,6 +1,6 @@
 # MicroPython SSD1306 OLED driver, I2C and SPI interfaces
 
-import time
+from micropython import const
 import framebuf
 
 
@@ -22,23 +22,17 @@ SET_DISP_CLK_DIV    = const(0xd5)
 SET_PRECHARGE       = const(0xd9)
 SET_VCOM_DESEL      = const(0xdb)
 SET_CHARGE_PUMP     = const(0x8d)
-SET_HWSCROLL_OFF    = const(0x2e)
-SET_HWSCROLL_ON     = const(0x2f)
-SET_HWSCROLL_RIGHT  = const(0x26)
-SET_HWSCROLL_LEFT   = const(0x27)
-#SET_HWSCROLL_VR     = const(0x29)
-#SET_HWSCROLL_VL     = const(0x2a)
 
-
-class SSD1306:
+# Subclassing FrameBuffer provides support for graphics primitives
+# http://docs.micropython.org/en/latest/pyboard/library/framebuf.html
+class SSD1306(framebuf.FrameBuffer):
     def __init__(self, width, height, external_vcc):
         self.width = width
         self.height = height
         self.external_vcc = external_vcc
         self.pages = self.height // 8
         self.buffer = bytearray(self.pages * self.width)
-        self.framebuf = framebuf.FrameBuffer1(self.buffer, self.width, self.height)
-        self.poweron()
+        super().__init__(self.buffer, self.width, self.height, framebuf.MONO_VLSB)
         self.init_display()
 
     def init_display(self):
@@ -71,6 +65,9 @@ class SSD1306:
     def poweroff(self):
         self.write_cmd(SET_DISP | 0x00)
 
+    def poweron(self):
+        self.write_cmd(SET_DISP | 0x01)
+
     def contrast(self, contrast):
         self.write_cmd(SET_CONTRAST)
         self.write_cmd(contrast)
@@ -93,73 +90,13 @@ class SSD1306:
         self.write_cmd(self.pages - 1)
         self.write_data(self.buffer)
 
-    def fill(self, col):
-        self.framebuf.fill(col)
-
-    def pixel(self, x, y, col):
-        self.framebuf.pixel(x, y, col)
-
-    def scroll(self, dx, dy):
-        self.framebuf.scroll(dx, dy)
-
-    def text(self, string, x, y, col=1):
-        self.framebuf.text(string, x, y, col)
-        self.show()
-        
-    def clear(self):
-        self.fill(0)
-        self.show()
-    
-    def hw_scroll_off(self):
-        self.write_cmd(SET_HWSCROLL_OFF) # turn off scroll
-        
-    def hw_scroll_h(self, direction=True):   # default to scroll right
-        self.write_cmd(SET_HWSCROLL_OFF)  # turn off hardware scroll per SSD1306 datasheet
-        if not direction:
-            self.write_cmd(SET_HWSCROLL_LEFT)
-            self.write_cmd(0x00) # dummy byte
-            self.write_cmd(0x07) # start page = page 7
-            self.write_cmd(0x00) # frequency = 5 frames
-            self.write_cmd(0x00) # end page = page 0
-        else:
-            self.write_cmd(SET_HWSCROLL_RIGHT)
-            self.write_cmd(0x00) # dummy byte
-            self.write_cmd(0x00) # start page = page 0
-            self.write_cmd(0x00) # frequency = 5 frames
-            self.write_cmd(0x07) # end page = page 7
-            
-        self.write_cmd(0x00)
-        self.write_cmd(0xff)
-        self.write_cmd(SET_HWSCROLL_ON) # activate scroll
-"""    
-    # This is for the diagonal scroll, it shows wierd actifacts on the lcd!!  
-    def hw_scroll_diag(self, direction=True):   # default to scroll verticle and right
-        self.write_cmd(SET_HWSCROLL_OFF)  # turn off hardware scroll per SSD1306 datasheet
-        if not direction:
-            self.write_cmd(SET_HWSCROLL_VL)
-            self.write_cmd(0x00) # dummy byte
-            self.write_cmd(0x07) # start page = page 7
-            self.write_cmd(0x00) # frequency = 5 frames
-            self.write_cmd(0x00) # end page = page 0
-            self.write_cmd(self.height)
-        else:
-            self.write_cmd(SET_HWSCROLL_VR)
-            self.write_cmd(0x00) # dummy byte
-            self.write_cmd(0x00) # start page = page 0
-            self.write_cmd(0x00) # frequency = 5 frames
-            self.write_cmd(0x07) # end page = page 7
-            self.write_cmd(self.height)
-            
-        self.write_cmd(0x00)
-        self.write_cmd(0xff)
-        self.write_cmd(SET_HWSCROLL_ON) # activate scroll
-"""
 
 class SSD1306_I2C(SSD1306):
     def __init__(self, width, height, i2c, addr=0x3c, external_vcc=False):
         self.i2c = i2c
         self.addr = addr
         self.temp = bytearray(2)
+        self.write_list = [b'\x40', None] # Co=0, D/C#=1
         super().__init__(width, height, external_vcc)
 
     def write_cmd(self, cmd):
@@ -168,15 +105,8 @@ class SSD1306_I2C(SSD1306):
         self.i2c.writeto(self.addr, self.temp)
 
     def write_data(self, buf):
-        self.temp[0] = self.addr << 1
-        self.temp[1] = 0x40 # Co=0, D/C#=1
-        self.i2c.start()
-        self.i2c.write(self.temp)
-        self.i2c.write(buf)
-        self.i2c.stop()
-
-    def poweron(self):
-        pass
+        self.write_list[1] = buf
+        self.i2c.writevto(self.addr, self.write_list)
 
 
 class SSD1306_SPI(SSD1306):
@@ -189,27 +119,26 @@ class SSD1306_SPI(SSD1306):
         self.dc = dc
         self.res = res
         self.cs = cs
+        import time
+        self.res(1)
+        time.sleep_ms(1)
+        self.res(0)
+        time.sleep_ms(10)
+        self.res(1)
         super().__init__(width, height, external_vcc)
 
     def write_cmd(self, cmd):
         self.spi.init(baudrate=self.rate, polarity=0, phase=0)
-        self.cs.high()
-        self.dc.low()
-        self.cs.low()
+        self.cs(1)
+        self.dc(0)
+        self.cs(0)
         self.spi.write(bytearray([cmd]))
-        self.cs.high()
+        self.cs(1)
 
     def write_data(self, buf):
         self.spi.init(baudrate=self.rate, polarity=0, phase=0)
-        self.cs.high()
-        self.dc.high()
-        self.cs.low()
+        self.cs(1)
+        self.dc(1)
+        self.cs(0)
         self.spi.write(buf)
-        self.cs.high()
-
-    def poweron(self):
-        self.res.high()
-        time.sleep_ms(1)
-        self.res.low()
-        time.sleep_ms(10)
-        self.res.high()
+        self.cs(1)
