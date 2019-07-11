@@ -62,7 +62,6 @@ oled.text('begin loop',0,0,1)
 oled.show()
 utime.sleep(1)
 
-
 # this bit is from main.py in planet_scale
 # create log scale of sizes of planets
 arb = 0.9
@@ -132,6 +131,8 @@ while True:
         r = requests.get(url)
         print(r.text)
         years = r.text
+        years = [x.strip() for x in years.split()]
+        years = years[0][:3] + " " + years[1] + " " + years[2]
         r.close()
         del r
         gc.collect()
@@ -193,17 +194,25 @@ while True:
         # show data
         oled.text(name, 0, 0)
 
-        oled.text('Helioc long.: ',0,10)
-        oled.text(str(int(long_i[index])),100,10)
+        oled.text('Heliocent. long.: ',0,15)
+        oled.text(str(int(long_i[index])),0,25)
 
-        oled.text('d to earth (AU): ',0,20)
-        oled.text(str(round(dist_i[index],2)),100,20)
+        oled.text('D to Earth (AU): ',0,38)
+        oled.text(str(round(dist_i[index],1)),0,48)
 
-        oled.text('Next perihelion:',0,30)
-        oled.text(years_i[index],100,30)
+        oled.show()
+        utime.sleep(10)
 
-        oled.text('Orbital pd (yrs):',0,40)
-        oled.text(str(round(period_i[index],1)),100,40)
+        oled.fill(0)
+        oled.show()
+
+        oled.text(name, 0, 0)
+
+        oled.text('Next perihelion:',0,15)
+        oled.text(years_i[index],0,25)
+
+        oled.text('Orbital pd (yr):',0,38)
+        oled.text(str(round(period_i[index],1)),0,48)
 
         oled.show()
         utime.sleep(10)
