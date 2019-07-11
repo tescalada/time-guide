@@ -2,34 +2,18 @@ import gc
 
 import network
 import ssd1306
-import sh1106
 import urequests as requests
 import gfx
 import math
 import utime
 
 #from rotary_irq_esp import RotaryIRQ
-from machine import I2C, Pin, SPI
+from machine import I2C, Pin
 
 from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
 
 oled_reset_pin = Pin(16, Pin.OUT)
 oled_reset_pin.value(1)
-
-spi = SPI(1, baudrate=800000)
-
-display = sh1106.SH1106_SPI(128, 64, spi, dc=Pin(0), res=oled_reset_pin, cs=Pin(15))
-utime.sleep(1)
-
-display2 = sh1106.SH1106_SPI(128, 64, spi, dc=Pin(2), res=oled_reset_pin, cs=Pin(1))
-utime.sleep(1)
-
-display.sleep(False)
-display.rotate(1)
-utime.sleep(1)
-
-display2.sleep(False)
-display2.rotate(1)
 
 utime.sleep(1)
 
@@ -39,8 +23,6 @@ oled = ssd1306.SSD1306_I2C(128, 64, i2c)
 utime.sleep(1)
 
 graphics = gfx.GFX(128, 32, oled.pixel)
-graphics1 = gfx.GFX(128, 64, display.pixel)
-graphics2 = gfx.GFX(128, 64, display2.pixel)
 
 oled.fill(0)
 oled.text('oled init',0,0,1)
@@ -80,6 +62,38 @@ oled.text('begin loop',0,0,1)
 oled.show()
 utime.sleep(1)
 
+
+# this bit is from main.py in planet_scale
+# create log scale of sizes of planets
+arb = 0.9
+pre = [1, 2.48, 2.61, 1.39, 28.66, 23.9, 10.4, 10.1]
+pre.insert(0, arb)
+scale = 3.5
+pre = [scale * math.log(x/pre[0],10) for x in pre]
+pre.pop(0)
+pre = [int(math.ceil(x)) for x in pre]
+
+# size of planets without earth
+pr = list.copy(pre)
+pr.pop(2)
+
+# create log scale of distances of planets from sun
+arb = 0.2
+sdist_i = [0.466, 0.72, 1.02, 1.66, 5.29, 10, 19.8, 29.9]
+sdist_i.insert(0, arb)
+scale = 57
+sdist_i = [scale * math.log(x/sdist_i[0],10) - 1 for x in sdist_i]
+sdist_i.pop(0)
+sdist_i = [int(math.ceil(x)) for x in sdist_i]
+
+# distances of planets from sun without earth
+pxc = list.copy(sdist_i)
+pxc.pop(2)
+# end of bit from planet_scale
+
+oled.fill(0)
+oled.show()
+
 while True:
     # earth heliocentric longitude
     url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid={0}".format(WOLFRAM_API_KEY)
@@ -94,40 +108,11 @@ while True:
     elong = float(elong)
     elong = math.radians(elong)
 
-   #oled stuff
-   # make log10 orbit distances
-
-    url = "http://api.wolframalpha.com/v1/result?i=earth%20distance%20from%20sun%3F&appid={0}".format(WOLFRAM_API_KEY)
-    r = requests.get(url)
-    print(r.text)
-    esdist = [x.strip() for x in r.text.split(',')]
-    esdist = [x.strip() for x in esdist[0].split()]
-    esdist = esdist[1]
-    r.close()
-    del r
-    esdist = float(esdist)
-    sdist_i.insert(2, esdist)
-
-    # create log scale of sizes of planets
-    arb = 0.9
-    pre = [1, 2.48, 2.61, 1.39, 28.66, 23.9, 10.4, 10.1]
-    pre.insert(0, arb)
-    scale = 3.5
-    pre = [scale * math.log(x/pre[0],10) for x in pre]
-    pre.pop(0)
-    pre = [int(math.ceil(x)) for x in pre]
-
-    # size of planets without earth
-    pr = list.copy(pre)
-    pr.pop(2)
-
     for index, name in enumerate(names):
         # oled stuff
-        oled.fill(0)
         oled.text("getting:", 0, 0)
         oled.text(name, 0, 10)
         oled.show()
-        utime.sleep(2)
 
         # heliocentric longitude
         url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
@@ -179,19 +164,6 @@ while True:
         # save planet data to list
         period_i[index] = float(period)
 
-         # distance from sun
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20sun%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        sdist = [x.strip() for x in r.text.split(',')]
-        sdist = [x.strip() for x in sdist[0].split()]
-        sdist = sdist[1]
-        r.close()
-        del r
-        print(sdist)
-        # save planet data to list
-        sdist_i[index] = float(sdist)
-
         # distance from earth
         url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20earth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
@@ -212,50 +184,42 @@ while True:
         oled.text(name, 0, 0)
         oled.text("acquired!", 0, 10)
         oled.show()
-        utime.sleep(2)
-
-    for index, name in enumerate(names):
-        # create log scale of distances of planets from sun
-        arb = 0.2
-        sdist_i.insert(0, arb)
-        scale = 57
-        sdist_i = [scale * math.log(x/sdist_i[0],10) for x in sdist_i]
-        sdist_i.pop(0)
-        sdist_i = [int(math.ceil(x)) for x in sdist_i]
-
-        # distances of planets without earth
-        pxc = list.copy(sdist_i)
-        pxc.pop(2)
+        utime.sleep(1)
 
         oled.fill(0)
-        display.fill(0)
-        display2.fill(0)
-        oled.show()
-        display.show()
-        display2.show()
-
-        #show planet index graphic
-        graphics.circle(sdist_i[0], 16, pre[0], 1)
-        graphics.circle(sdist_i[1], 16, pre[1], 1)
-        graphics.fill_circle(sdist_i[2], 16, pre[2], 1)
-        graphics.circle(sdist_i[3], 16, pre[3], 1)
-        graphics.circle(sdist_i[4], 16, pre[4], 1)
-        graphics.circle(sdist_i[5], 16, pre[5], 1)
-        graphics.circle(sdist_i[6], 16, pre[6], 1)
-        graphics.circle(sdist_i[7], 16, pre[7], 1)
-
-        oled.line(pxc[index]-pr[index], 31, pxc[index]+pr[index], 31, 1)
         oled.show()
 
-        # display stuff
-        #calculate progress towards perihelion
+    for index, name in enumerate(names):
+        # show data
+        oled.text(name, 0, 0)
+
+        oled.text('Helioc long.: ',0,10)
+        oled.text(str(int(long_i[index])),100,10)
+
+        oled.text('d to earth (AU): ',0,20)
+        oled.text(str(round(dist_i[index],2)),100,20)
+
+        oled.text('Next perihelion:',0,30)
+        oled.text(years_i[index],100,30)
+
+        oled.text('Orbital pd (yrs):',0,40)
+        oled.text(str(round(period_i[index],1)),100,40)
+
+        oled.show()
+        utime.sleep(10)
+
+        oled.fill(0)
+        oled.show()
+
+        # graphics
+        # calculate progress towards perihelion
         # orbit progress circle dims
-        xc = 63
+        xc = 94
         yc = 31
         rad = int(pxc[index]/4)
 
         #draw orbit progress circle outline
-        graphics1.circle(xc, yc, rad, 1)
+        graphics.circle(xc, yc, rad, 1)
 
         #calculate orbit progress in radians
         p_rad = math.radians(long_i[index])
@@ -268,81 +232,63 @@ while True:
         #draw rectangle blocks and planet marker
         xblock = int(math.fabs(xp))
 
+
         # top-right
         if p_rad <= math.pi/2:
             #fill bottom half of circle
-            display.fill_rect(xc - rad, yc, 2 * rad + 1, rad + 1, 0)
+            oled.fill_rect(xc - rad, yc, 2 * rad + 1, rad + 1, 0)
             #fill top left of circle
-            display.fill_rect(xc - rad, yc - rad, rad + 1, rad + 1, 0)
+            oled.fill_rect(xc - rad, yc - rad, rad + 1, rad + 1, 0)
             #partial fill top right of circle
-            display.fill_rect(xc, yc - rad, xblock + 1, rad + 1, 0)
+            oled.fill_rect(xc, yc - rad, xblock + 1, rad + 1, 0)
 
         # top-left
         elif p_rad >= math.pi/2 and p_rad <= math.pi:
            #fill bottom half of circle
-            display.fill_rect(xc - rad, yc, 2 * rad + 1, rad + 1, 0)
+            oled.fill_rect(xc - rad, yc, 2 * rad + 1, rad + 1, 0)
             #partial fill top left of circle
-            display.fill_rect(xc - rad, yc - rad, rad - xblock, rad + 1, 0)
+            oled.fill_rect(xc - rad, yc - rad, rad - xblock, rad + 1, 0)
 
         # bottom left
         elif p_rad >= math.pi and p_rad <= 3 * math.pi/2:
            #fill bottom right of circle
-            display.fill_rect(xc, yc, rad + 1, rad + 1, 0)
+            oled.fill_rect(xc, yc, rad + 1, rad + 1, 0)
             #partial fill bottom left of circle
-            display.fill_rect(xc - xblock, yc, xblock + 1, rad + 1, 0)
+            oled.fill_rect(xc - xblock, yc, xblock + 1, rad + 1, 0)
 
         # bottom-right
         else:
             #partial fill bottom right of circle
-            display.fill_rect(xc + xblock, yc, rad - xblock + 1, rad + 1, 0)
+            oled.fill_rect(xc + xblock, yc, rad - xblock + 1, rad + 1, 0)
 
         # plot planet marker
-        graphics1.circle(xc + xp, yc - yp, pr[index], 1)
-        graphics1.fill_circle(xc + xp, yc - yp, 1, 1)
+        graphics.circle(xc + xp, yc - yp, pr[index], 1)
+        graphics.fill_circle(xc + xp, yc - yp, 1, 1)
 
         # plot earth
         xe = int(round((sdist_i[2]/4) * math.cos(elong),0))
         ye = int(round((sdist_i[2]/4) * math.sin(elong),0))
-        graphics1.circle(xc + xe, yc - ye, 1, 1)
+        graphics.circle(xc + xe, yc - ye, 1, 1)
 
 #        # plot earth - planet distance
 #        display.line(xc + xp, yc + yp, xc + xe, yc + ye, 1)
 
         # make sun
-        graphics1.fill_circle(xc, yc, 2, 1)
+        graphics.fill_circle(xc, yc, 2, 1)
 
         # show perihelion location
         longp = longp_i[index]
         longp = math.radians(longp)
         xpp = int((rad) * math.cos(longp))
         ypp = int((rad) * math.sin(longp))
-        display.line(xc, yc, xc + xpp, yc + ypp, 1)
+        oled.line(xc, yc, xc + xpp, yc + ypp, 1)
 
-
-        # display2 stuff
-        # show data
-        display2.text('heliocentric longitude: ',0,0)
-        display2.text(long_i[index],100,0)
-
-        display2.text('dist to earth (AU): ',0,10)
-        display2.text(round(dist_i[index],2),100,10)
-
-        display2.text('next periapsis:',0,20)
-        display2.text(years_i[index],100,20)
-
-        display2.text('orbital period:',0,30)
-        display2.text(round(period_i[index],2),100,30)
-
-        display.show()
-        display2.show()
+        oled.text(name, 0, 0)
+        oled.show()
         utime.sleep(10)
 
         oled.fill(0)
-        display.fill(0)
-        display2.fill(0)
         oled.show()
-        display.show()
-        display2.show()
 
 
     # collect garbage just in case that is causing the crashes
