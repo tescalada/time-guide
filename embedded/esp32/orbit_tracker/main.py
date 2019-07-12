@@ -22,7 +22,7 @@ i2c = I2C(scl=Pin(15), sda=Pin(4))
 oled = ssd1306.SSD1306_I2C(128, 64, i2c)
 utime.sleep(1)
 
-graphics = gfx.GFX(128, 32, oled.pixel)
+graphics = gfx.GFX(128, 64, oled.pixel)
 
 oled.fill(0)
 oled.text('oled init',0,0,1)
