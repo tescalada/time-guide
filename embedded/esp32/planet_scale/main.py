@@ -8,6 +8,8 @@ from rotary_irq_esp import RotaryIRQ
 
 from machine import I2C, Pin
 
+button = Pin(27, Pin.IN, Pin.PULL_UP)
+
 oled_reset_pin = Pin(16, Pin.OUT)
 oled_reset_pin.value(1)
 
@@ -93,6 +95,11 @@ while True:
     oled.line(sdist_i[5] - pre[5], 37, sdist_i[5] + pre[5], 25, 1)
     graphics.circle(sdist_i[6], 31, pre[6], 1)
     graphics.circle(sdist_i[7], 31, pre[7], 1)
+
+    if not button.value():
+        print('Button pressed!')
+
+    utime.sleep_ms(125)
 
     val = r.value()
 
