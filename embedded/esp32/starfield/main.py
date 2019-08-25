@@ -48,7 +48,7 @@ def initStar(i):
     else:
         sign = -1
 
-    star_y[i] = int(100 * sign * random.getrandbits(9)/512)
+    star_y[i] = int(50 * sign * random.getrandbits(9)/512)
 
     star_z[i] = 100 + int(400 * random.getrandbits(9)/512)
 
