@@ -1,17 +1,30 @@
 import gc
 
 import ssd1306
+import sh1106
 import gfx
 import math
 import utime
 from rotary_irq_esp import RotaryIRQ
 
-from machine import I2C, Pin
+from machine import I2C, Pin, SPI
 
 button = Pin(27, Pin.IN, Pin.PULL_UP)
 
 oled_reset_pin = Pin(16, Pin.OUT)
-oled_reset_pin.value(1)
+
+hspi = SPI(1, 10000000, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
+
+display = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(26), res=oled_reset_pin, cs=Pin(5))
+display2 = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(33), res=oled_reset_pin, cs=Pin(2))
+
+utime.sleep(1)
+
+display.sleep(False)
+display.rotate(1)
+display2.sleep(False)
+display2.rotate(1)
+utime.sleep(1)
 
 i2c = I2C(scl=Pin(15), sda=Pin(4))
 
@@ -19,6 +32,8 @@ oled = ssd1306.SSD1306_I2C(128, 64, i2c)
 utime.sleep(1)
 
 graphics = gfx.GFX(128, 64, oled.pixel)
+graphics1 = gfx.GFX(128, 64, display.pixel)
+graphics2 = gfx.GFX(128, 64, display2.pixel)
 
 oled.fill(0)
 oled.text('oled init',0,0,1)
@@ -26,17 +41,18 @@ oled.show()
 utime.sleep(2)
 
 
+names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+menu = ['Planet Menu', 'Sky Location', 'Sky Chart', 'Orbital Data']
+
 r = RotaryIRQ(pin_num_clk=14,
               pin_num_dt=13,
               min_val=0,
-              max_val=6,
+              max_val=len(names)-1,
               reverse=True,
               range_mode=RotaryIRQ.RANGE_WRAP)
 
 sdist_i = [0.417, 0.723, 1.64, 5.3, 10.1, 19.8, 29.9]
 
-names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
-menu = ['Planet Menu', 'Sky Location', 'Sky Chart', 'Orbital Data']
 
 
 # create log scale of sizes of planets
@@ -69,6 +85,8 @@ oled.fill(0)
 oled.show()
 
 lastval = r.value()
+lastval2 = r.value()
+
 
 oled.fill(0)
 
@@ -97,6 +115,16 @@ graphics.circle(sdist_i[6], 31, pre[6], 1)
 graphics.circle(sdist_i[7], 31, pre[7], 1)
 oled.show()
 
+display.fill(0)
+display.text('display init',0,0,1)
+graphics1.circle(63, 32, 10, 1)
+
+display2.fill(0)
+display2.text('display2 init',0,0,1)
+graphics2.circle(63, 32, 10, 1)
+
+display.show()
+display2.show()
 
 while True:
 
@@ -128,10 +156,23 @@ while True:
 
     if not button.value():
         print('Button pressed!')
-        oled.fill(0)
-        oled.show()
+        r = RotaryIRQ(pin_num_clk=14,
+                      pin_num_dt=13,
+                      min_val=0,
+                      max_val=len(menu)-1,
+                      reverse=True,
+                      range_mode=RotaryIRQ.RANGE_WRAP)
+        utime.sleep_ms(125)
 
-    utime.sleep_ms(125)
+        while True:
+            oled.fill(0)
+            val2 = r.value()
+            if lastval2 != val2:
+                lastval2 = val2
+                print('result =', val2)
+                oled.text(menu[val2], 16, 0, 1)
+                oled.show()
+            utime.sleep_ms(50)
 
     val = r.value()
 
