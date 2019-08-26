@@ -89,4 +89,5 @@ while True:
     oled.fill(0)
     display.fill(0)
     display2.fill(0)
+
     showStarfield()
