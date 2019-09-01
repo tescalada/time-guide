@@ -6,7 +6,7 @@
 
 class GFX:
 
-    def __init__(self, width, height, pixel, hline = None, vline = None):
+    def __init__(self, width, height, pixel, hline=None, vline=None):
         # Create an instance of the GFX drawing class.  You must pass in the
         # following parameters:
         #  - width = The width of the drawing area in pixels.
@@ -53,6 +53,55 @@ class GFX:
             return
         for i in range(height):
             self._pixel(x0, y0+i, *args, **kwargs)
+
+    def rect(self, x0, y0, width, height, *args, **kwargs):
+        # Rectangle drawing function.  Will draw a single pixel wide rectangle
+        # starting in the upper left x0, y0 position and width, height pixels in
+        # size.
+        if y0 < -height or y0 > self.height or x0 < -width or x0 > self.width:
+            return
+        self.hline(x0, y0, width, *args, **kwargs)
+        self.hline(x0, y0+height-1, width, *args, **kwargs)
+        self.vline(x0, y0, height, *args, **kwargs)
+        self.vline(x0+width-1, y0, height, *args, **kwargs)
+
+    def fill_rect(self, x0, y0, width, height, *args, **kwargs):
+        # Filled rectangle drawing function.  Will draw a single pixel wide
+        # rectangle starting in the upper left x0, y0 position and width, height
+        # pixels in size.
+        if y0 < -height or y0 > self.height or x0 < -width or x0 > self.width:
+            return
+        for i in range(x0, x0+width):
+            self.vline(i, y0, height, *args, **kwargs)
+
+    def line(self, x0, y0, x1, y1, *args, **kwargs):
+        # Line drawing function.  Will draw a single pixel wide line starting at
+        # x0, y0 and ending at x1, y1.
+        steep = abs(y1 - y0) > abs(x1 - x0)
+        if steep:
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+        if x0 > x1:
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+        dx = x1 - x0
+        dy = abs(y1 - y0)
+        err = dx // 2
+        ystep = 0
+        if y0 < y1:
+            ystep = 1
+        else:
+            ystep = -1
+        while x0 <= x1:
+            if steep:
+                self._pixel(y0, x0, *args, **kwargs)
+            else:
+                self._pixel(x0, y0, *args, **kwargs)
+            err -= dy
+            if err < 0:
+                y0 += ystep
+                err += dx
+            x0 += 1
 
     def circle(self, x0, y0, radius, *args, **kwargs):
         # Circle drawing function.  Will draw a single pixel wide circle with
@@ -104,3 +153,77 @@ class GFX:
             self.vline(x0 + y, y0 - x, 2*x + 1, *args, **kwargs)
             self.vline(x0 - x, y0 - y, 2*y + 1, *args, **kwargs)
             self.vline(x0 - y, y0 - x, 2*x + 1, *args, **kwargs)
+
+    def triangle(self, x0, y0, x1, y1, x2, y2, *args, **kwargs):
+        # Triangle drawing function.  Will draw a single pixel wide triangle
+        # around the points (x0, y0), (x1, y1), and (x2, y2).
+        self.line(x0, y0, x1, y1, *args, **kwargs)
+        self.line(x1, y1, x2, y2, *args, **kwargs)
+        self.line(x2, y2, x0, y0, *args, **kwargs)
+
+    def fill_triangle(self, x0, y0, x1, y1, x2, y2, *args, **kwargs):
+        # Filled triangle drawing function.  Will draw a filled triangle around
+        # the points (x0, y0), (x1, y1), and (x2, y2).
+        if y0 > y1:
+            y0, y1 = y1, y0
+            x0, x1 = x1, x0
+        if y1 > y2:
+            y2, y1 = y1, y2
+            x2, x1 = x1, x2
+        if y0 > y1:
+            y0, y1 = y1, y0
+            x0, x1 = x1, x0
+        a = 0
+        b = 0
+        y = 0
+        last = 0
+        if y0 == y2:
+            a = x0
+            b = x0
+            if x1 < a:
+                a = x1
+            elif x1 > b:
+                b = x1
+            if x2 < a:
+                a = x2
+            elif x2 > b:
+                b = x2
+            self.hline(a, y0, b-a+1, *args, **kwargs)
+            return
+        dx01 = x1 - x0
+        dy01 = y1 - y0
+        dx02 = x2 - x0
+        dy02 = y2 - y0
+        dx12 = x2 - x1
+        dy12 = y2 - y1
+        if dy01 == 0:
+            dy01 = 1
+        if dy02 == 0:
+            dy02 = 1
+        if dy12 == 0:
+            dy12 = 1
+        sa = 0
+        sb = 0
+        if y1 == y2:
+            last = y1
+        else:
+            last = y1-1
+        for y in range(y0, last+1):
+            a = x0 + sa // dy01
+            b = x0 + sb // dy02
+            sa += dx01
+            sb += dx02
+            if a > b:
+                a, b = b, a
+            self.hline(a, y, b-a+1, *args, **kwargs)
+        sa = dx12 * (y - y1)
+        sb = dx02 * (y - y0)
+        while y <= y2:
+            a = x1 + sa // dy12
+            b = x0 + sb // dy02
+            sa += dx12
+            sb += dx02
+            if a > b:
+                a, b = b, a
+            self.hline(a, y, b-a+1, *args, **kwargs)
+            y += 1
