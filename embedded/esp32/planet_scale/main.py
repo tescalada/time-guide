@@ -5,7 +5,9 @@ import sh1106
 import gfx
 import math
 import utime
+#import network
 from rotary_irq_esp import RotaryIRQ
+from planetFn import orbitTracker, skyChartSimple
 
 from machine import I2C, Pin, SPI
 
@@ -15,13 +17,13 @@ oled_reset_pin = Pin(16, Pin.OUT)
 
 hspi = SPI(1, 10000000, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
 
-display = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(26), res=oled_reset_pin, cs=Pin(5))
+display1 = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(26), res=oled_reset_pin, cs=Pin(5))
 display2 = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(33), res=oled_reset_pin, cs=Pin(2))
 
 utime.sleep(1)
 
-display.sleep(False)
-display.rotate(1)
+display1.sleep(False)
+display1.rotate(1)
 display2.sleep(False)
 display2.rotate(1)
 utime.sleep(1)
@@ -32,13 +34,44 @@ oled = ssd1306.SSD1306_I2C(128, 64, i2c)
 utime.sleep(1)
 
 graphics = gfx.GFX(128, 64, oled.pixel)
-graphics1 = gfx.GFX(128, 64, display.pixel)
+graphics1 = gfx.GFX(128, 64, display1.pixel)
 graphics2 = gfx.GFX(128, 64, display2.pixel)
+#
+#def do_connect():
+#    wlan = network.WLAN(network.STA_IF)
+#    wlan.active(True)
+#    if not wlan.isconnected():
+#        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+#        while not wlan.isconnected():
+##            wdt.feed()
+#            pass
+#    print('network config:', wlan.ifconfig())
+#
+#do_connect()
+#gc.collect()
+#
+#oled.fill(0)
+#oled.text('wifi connected',0,0,1)
+#oled.show()
+#utime.sleep(1)
+
 
 oled.fill(0)
 oled.text('oled init',0,0,1)
 oled.show()
-utime.sleep(2)
+
+display1.fill(0)
+display1.text('display init',0,0,1)
+graphics1.circle(63, 32, 10, 1)
+
+display2.fill(0)
+display2.text('display2 init',0,0,1)
+graphics2.circle(63, 32, 10, 1)
+
+display1.show()
+display2.show()
+
+utime.sleep(1)
 
 
 names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
@@ -52,8 +85,6 @@ r = RotaryIRQ(pin_num_clk=14,
               range_mode=RotaryIRQ.RANGE_WRAP)
 
 sdist_i = [0.417, 0.723, 1.64, 5.3, 10.1, 19.8, 29.9]
-
-
 
 # create log scale of sizes of planets
 arb = 0.9
@@ -81,14 +112,15 @@ sdist_i = [int(math.ceil(x)) for x in sdist_i]
 pxc = list.copy(sdist_i)
 pxc.pop(2)
 
+
 oled.fill(0)
+display1.fill(0)
+display2.fill(0)
+
 oled.show()
+display1.show()
+display2.show()
 
-lastval = r.value()
-lastval2 = r.value()
-
-
-oled.fill(0)
 
 # make huge sun
 oled.vline(0, 0, 64, 1)
@@ -105,6 +137,8 @@ oled.vline(10, 23, 19, 1)
 
 # show planet index graphic
 graphics.circle(sdist_i[0], 31, pre[0], 1)
+oled.line(pxc[0]-pr[0], 41, pxc[0]+pr[0], 41, 1)
+oled.text(names[0], 16, 0, 1)
 graphics.circle(sdist_i[1], 31, pre[1], 1)
 graphics.fill_circle(sdist_i[2], 31, pre[2], 1)
 graphics.circle(sdist_i[3], 31, pre[3], 1)
@@ -115,67 +149,85 @@ graphics.circle(sdist_i[6], 31, pre[6], 1)
 graphics.circle(sdist_i[7], 31, pre[7], 1)
 oled.show()
 
-display.fill(0)
-display.text('display init',0,0,1)
-graphics1.circle(63, 32, 10, 1)
-
-display2.fill(0)
-display2.text('display2 init',0,0,1)
-graphics2.circle(63, 32, 10, 1)
-
-display.show()
-display2.show()
-
 while True:
 
-    oled.fill(0)
+    def planetMenu():
+        global lastval
 
-    # make huge sun
-    oled.vline(0, 0, 64, 1)
-    oled.vline(1, 0, 64, 1)
-    oled.vline(2, 0, 64, 1)
-    oled.vline(3, 0, 64, 1)
-    oled.vline(4, 0, 64, 1)
-    oled.vline(5, 0, 64, 1)
-    oled.vline(6, 0, 64, 1)
-    oled.vline(7, 0, 64, 1)
-    oled.vline(8, 3, 58, 1)
-    oled.vline(9, 16, 33, 1)
-    oled.vline(10, 23, 19, 1)
+        oled.fill(0)
 
-    # show planet index graphic
-    graphics.circle(sdist_i[0], 31, pre[0], 1)
-    graphics.circle(sdist_i[1], 31, pre[1], 1)
-    graphics.fill_circle(sdist_i[2], 31, pre[2], 1)
-    graphics.circle(sdist_i[3], 31, pre[3], 1)
-    graphics.circle(sdist_i[4], 31, pre[4], 1)
-    graphics.circle(sdist_i[5], 31, pre[5], 1)
-    oled.line(sdist_i[5] - pre[5], 37, sdist_i[5] + pre[5], 25, 1)
-    graphics.circle(sdist_i[6], 31, pre[6], 1)
-    graphics.circle(sdist_i[7], 31, pre[7], 1)
+        # make huge sun
+        oled.vline(0, 0, 64, 1)
+        oled.vline(1, 0, 64, 1)
+        oled.vline(2, 0, 64, 1)
+        oled.vline(3, 0, 64, 1)
+        oled.vline(4, 0, 64, 1)
+        oled.vline(5, 0, 64, 1)
+        oled.vline(6, 0, 64, 1)
+        oled.vline(7, 0, 64, 1)
+        oled.vline(8, 3, 58, 1)
+        oled.vline(9, 16, 33, 1)
+        oled.vline(10, 23, 19, 1)
+
+        # show planet index graphic
+        graphics.circle(sdist_i[0], 31, pre[0], 1)
+        graphics.circle(sdist_i[1], 31, pre[1], 1)
+        graphics.fill_circle(sdist_i[2], 31, pre[2], 1)
+        graphics.circle(sdist_i[3], 31, pre[3], 1)
+        graphics.circle(sdist_i[4], 31, pre[4], 1)
+        graphics.circle(sdist_i[5], 31, pre[5], 1)
+        oled.line(sdist_i[5] - pre[5], 37, sdist_i[5] + pre[5], 25, 1)
+        graphics.circle(sdist_i[6], 31, pre[6], 1)
+        graphics.circle(sdist_i[7], 31, pre[7], 1)
+
+        lastval = r.value()
+
+    planetMenu()
 
     if not button.value():
-        print('Button pressed!')
-        r = RotaryIRQ(pin_num_clk=14,
+        print('Planet button pressed!')
+        r2 = RotaryIRQ(pin_num_clk=14,
                       pin_num_dt=13,
                       min_val=0,
                       max_val=len(menu)-1,
                       reverse=True,
                       range_mode=RotaryIRQ.RANGE_WRAP)
-        utime.sleep_ms(125)
+        lastval2 = r2.value()
+        utime.sleep_ms(250)
+        oled.fill(0)
+        oled.text('Function menu', 0, 0, 1)
+        oled.hline(0, 12, 128, 1)
+        oled.show()
+
 
         while True:
-            oled.fill(0)
-            val2 = r.value()
+            if not button.value():
+                print('Menu button pressed!')
+                utime.sleep_ms(250)
+                name = names[lastval]
+                menufn = menu[lastval2]
+                print(name)
+                print(menufn)
+
+                if menufn == 'Planet Menu':
+                    planetMenu()
+
+                elif menufn == 'Sky Chart':
+                    skyChartSimple(name)
+
+                elif menufn == 'Orbital Data':
+                    orbitTracker(name)
+
+            val2 = r2.value()
             if lastval2 != val2:
                 lastval2 = val2
-                print('result =', val2)
-                oled.text(menu[val2], 16, 0, 1)
+                print('result2 =', val2)
+                oled.fill(0)
+                oled.text(menu[val2], 0, 0, 1)
                 oled.show()
             utime.sleep_ms(50)
 
     val = r.value()
-
     if lastval != val:
         lastval = val
         print('result =', val)
@@ -184,6 +236,7 @@ while True:
         oled.show()
 
     utime.sleep_ms(50)
+
 
     # collect garbage just in case that is causing the crashes
     gc.collect()
