@@ -5,9 +5,10 @@ import sh1106
 import gfx
 import math
 import utime
-#import network
+import network
 from rotary_irq_esp import RotaryIRQ
 from planetFn import orbitTracker, skyChartSimple
+from credentials import WIFI_SSID, WIFI_PASSWORD
 
 from machine import I2C, Pin, SPI
 
@@ -36,24 +37,24 @@ utime.sleep(1)
 graphics = gfx.GFX(128, 64, oled.pixel)
 graphics1 = gfx.GFX(128, 64, display1.pixel)
 graphics2 = gfx.GFX(128, 64, display2.pixel)
-#
-#def do_connect():
-#    wlan = network.WLAN(network.STA_IF)
-#    wlan.active(True)
-#    if not wlan.isconnected():
-#        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
-#        while not wlan.isconnected():
-##            wdt.feed()
-#            pass
-#    print('network config:', wlan.ifconfig())
-#
-#do_connect()
-#gc.collect()
-#
-#oled.fill(0)
-#oled.text('wifi connected',0,0,1)
-#oled.show()
-#utime.sleep(1)
+
+def do_connect():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    if not wlan.isconnected():
+        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+        while not wlan.isconnected():
+#            wdt.feed()
+            pass
+    print('network config:', wlan.ifconfig())
+
+do_connect()
+gc.collect()
+
+oled.fill(0)
+oled.text('wifi connected',0,0,1)
+oled.show()
+utime.sleep(1)
 
 
 oled.fill(0)

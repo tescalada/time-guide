@@ -5,7 +5,8 @@ import sh1106
 import gfx
 import math
 import utime
-#import network
+import urequests as requests
+from credentials import WOLFRAM_API_KEY
 
 from machine import I2C, Pin, SPI
 
@@ -36,14 +37,96 @@ graphics2 = gfx.GFX(128, 64, display2.pixel)
 names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
 
 
+
 def orbitTracker(name):
-    long_i = [200.0, 48.0, 126.0, 260.0, 286.0, 33.0, 346.0]
-    years_i = ['August 20, 2019', 'August 8, 2019', 'August 3, 2020', 'January 24, 2023', 'December 24, 2032', 'February 10, 2051', 'July 16, 2047']
-    longp_i = [76.0, 131.0, 336.0, 14.0, 93.0, 173.0, 49.0]
-    period_i = [0.2408467, 0.61519726, 1.8808476, 11.862615, 29.447498, 84.016846, 164.79132]
-    dist_i = [0.928, 1.65, 2.51, 4.29, 9.1, 20.5, 29.8]
-    sdist_i = [0.417, 0.723, 1.64, 5.3, 10.1, 19.8, 29.9]
-    elong = 0
+    # earth heliocentric longitude
+    url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid={0}".format(WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    elong = [x.strip() for x in r.text.split(',')]
+    elong = [x.strip() for x in elong[0].split()]
+    elong = elong[0]
+    r.close()
+    del r
+    print(elong)
+    elong = float(elong)
+    elong = math.radians(elong)
+
+    #oled stuff
+    display1.fill(0)
+    display1.text("getting:", 0, 0)
+    display1.text(name, 0, 10)
+    display1.show()
+    display2.fill(0)
+    display2.show()
+    utime.sleep(1)
+
+    # heliocentric longitude
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    long = [x.strip() for x in r.text.split(',')]
+    long = [x.strip() for x in long[0].split()]
+    long = long[0]
+    r.close()
+    del r
+    print(long)
+    long = float(long)
+
+    # perihelion data
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20next%20periapsis%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    years = r.text
+    years = [x.strip() for x in years.split()]
+    years = years[0][:3] + " " + years[1] + " " + years[2]
+    r.close()
+    del r
+    gc.collect()
+
+    # heliocentric longitude @ next perihelion
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%20at%20next%20perihelion%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    longp = [x.strip() for x in r.text.split(',')]
+    longp = [x.strip() for x in longp[0].split()]
+    longp = longp[0]
+    r.close()
+    del r
+    print(longp)
+    longp = float(longp)
+
+    # orbital period data from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20orbital%20period%20in%20julian%20years%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    period = [x.strip() for x in r.text.split()]
+    period = period[0]
+    print(period)
+    r.close()
+    del r
+    gc.collect()
+    period = float(period)
+
+    # distance from earth
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20earth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    dist = [x.strip() for x in r.text.split(',')]
+    dist = [x.strip() for x in dist[0].split()]
+    dist = dist[1]
+    r.close()
+    del r
+    gc.collect()
+    print(dist)
+    dist = float(dist)
+
+    #oled stuff
+    display1.fill(0)
+    display1.text(name, 0, 0)
+    display1.text("acquired!", 0, 10)
+    display1.show()
+    utime.sleep(1)
 
     # create log scale of sizes of planets
     arb = 0.9
@@ -85,7 +168,7 @@ def orbitTracker(name):
     graphics2.circle(xc, yc, rad, 1)
 
     #calculate orbit progress in radians
-    p_rad = math.radians(long_i[names.index(name)])
+    p_rad = math.radians(long)
     print(p_rad)
 
     #calculate x,y position of planet in heliocentric coordinates relative to xc,yc
@@ -139,7 +222,6 @@ def orbitTracker(name):
     graphics2.fill_circle(xc, yc, 2, 1)
 
     # show perihelion location
-    longp = longp_i[names.index(name)]
     longp = math.radians(longp)
     xpp = int((rad) * math.cos(longp))
     ypp = int((rad) * math.sin(longp))
@@ -152,9 +234,9 @@ def orbitTracker(name):
     # show data on display1
     display1.text(name, 0, 0)
     display1.text('Heliocent. long.: ',0,15)
-    display1.text(str(int(long_i[names.index(name)])),0,25)
+    display1.text(str(int(long)),0,25)
     display1.text('D to Earth (AU): ',0,38)
-    display1.text(str(round(dist_i[names.index(name)],1)),0,48)
+    display1.text(str(round(dist,1)),0,48)
 
     display1.show()
     utime.sleep(10)
@@ -162,9 +244,9 @@ def orbitTracker(name):
     display1.fill(0)
     display1.text(name, 0, 0)
     display1.text('Next perihelion:',0,15)
-    display1.text(years_i[names.index(name)],0,25)
+    display1.text(years,0,25)
     display1.text('Orbital pd (yr):',0,38)
-    display1.text(str(round(period_i[names.index(name)],1)),0,48)
+    display1.text(str(round(period,1)),0,48)
     display1.show()
 
     gc.collect()
@@ -172,40 +254,93 @@ def orbitTracker(name):
 
 def skyChartSimple(name):
 
-    visible_i = ['No', 'No', 'No', 'No', 'No', 'No', 'No']
-    al_i = [0, 0, 0, 0, 0, 0, 0]
-    az_i = [0, 0, 0, 0, 0, 0, 0]
+    #oled stuff
+    display1.fill(0)
+    display1.text("getting:", 0, 0)
+    display1.text(name, 0, 10)
+    display1.show()
+    display2.fill(0)
+    display2.show()
+    utime.sleep(1)
+
+    # obtain planet above horizon from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20above%20horizon%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    visible = [x.strip() for x in r.text.split(',')]
+    visible = visible[0]
+    print(visible)
+    r.close()
+    del r
+    gc.collect()
+
+    # sky chart data
+    # obtain current planet azimuth from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azc = [x.strip() for x in r.text.split(',')]
+    azc = [x.strip() for x in azc[0].split()]
+    azc = azc[0]
+    azc = float(azc)
+    print(azc)
+    r.close()
+    del r
+    gc.collect()
+
+    # obtain current planet altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    alc = [x.strip() for x in r.text.split(',')]
+    alc = [x.strip() for x in alc[0].split()]
+    alc = alc[0]
+    alc = float(alc)
+    print(alc)
+    r.close()
+    del r
+    gc.collect()
+
+    #oled stuff
+    display1.fill(0)
+    display1.text(name, 0, 0)
+    display1.text("acquired!", 0, 10)
+    display1.show()
+    utime.sleep(1)
 
     # display stuff
     display1.fill(0)
     display2.fill(0)
 
-
     display1.text(name, 0, 0)
     display1.text("Visible:", 0,10)
-    display1.text(visible_i[names.index(name)], 80,10)
+    display1.text(visible, 80,10)
     display1.show()
 
     # show planet altitude
-    if visible_i[names.index(name)] == 'Yes':
-        graphics1.line(0, 48, 18, 48, 1)
-        y = 18 * math.sin(math.radians(al_i[names.index(name)]))
+    if visible == 'Yes':
+        display1.text("Altitude:", 0, 20)
+        display1.text(str(round(alc)), 80, 20)
+        graphics1.line(48, 63, 78, 63, 1)
+        y = 30 * math.sin(math.radians(alc))
         y = int(round(y,0))
-        graphics1.line(0, 48, 18, 48 - y, 1)
-        display1.text(str(round(al_i[names.index(name)])), 22, 42)
+        graphics1.line(48, 63, 78, 63 - y, 1)
+        display1.text(str(round(alc)), 82, 60 - y)
 
     # show planet azimuth
-    xc = 80
-    yc = 48
-    rad = 10
-    display1.text("N", xc - 3, 30)
-    display1.text(str(round(az_i[names.index(name)])), xc + 15, 42)
-    graphics1.circle(xc, yc, rad, 1)
-    x = rad * math.cos(math.radians(az_i[names.index(name)] - 90))
+    xc = 63
+    yc = 46
+    rad = 17
+    display2.text("Azimuth:", 0, 10)
+    display2.text(str(round(azc)), 80, 10)
+    display2.text("N", xc - 3, 20)
+    graphics2.circle(xc, yc, rad, 1)
+    x = rad * math.cos(math.radians(azc - 90))
     x = round(x,0)
-    y = rad * math.sin(math.radians(az_i[names.index(name)] - 90))
+    y = rad * math.sin(math.radians(azc - 90))
     y = round(y,0)
-    display1.line(xc, yc, int(xc + x), int(yc + y), 1)
+    display2.line(xc, yc, int(xc + x), int(yc + y), 1)
+
     display1.show()
     display2.show()
 
