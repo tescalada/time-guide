@@ -224,16 +224,14 @@ while True:
                 if menufn == 'Planet Menu':
                     oled.fill(0)
                     oled.show()
-                    while True:
-                        r = RotaryIRQ(pin_num_clk=14,
+                    r = RotaryIRQ(pin_num_clk=14,
                             pin_num_dt=13,
                             min_val=0,
                             max_val=len(names)-1,
                             reverse=True,
                             range_mode=RotaryIRQ.RANGE_WRAP)
-                        lastval = r.value()
-                        utime.sleep_ms(50)
-                        planetMenu()
+                    lastval = r.value()
+                    break
 
                 elif menufn == 'Sky Chart':
                     skyChartSimple(name)
