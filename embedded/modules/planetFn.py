@@ -96,18 +96,6 @@ def orbitTracker(name):
     print(longp)
     longp = float(longp)
 
-    # orbital period data from wolframalpha API
-    url = "http://api.wolframalpha.com/v1/result?i={0}%20orbital%20period%20in%20julian%20years%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-    r = requests.get(url)
-    print(r.text)
-    period = [x.strip() for x in r.text.split()]
-    period = period[0]
-    print(period)
-    r.close()
-    del r
-    gc.collect()
-    period = float(period)
-
     # distance from earth
     url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20earth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
     r = requests.get(url)
@@ -120,6 +108,10 @@ def orbitTracker(name):
     gc.collect()
     print(dist)
     dist = float(dist)
+
+    #periods of planets without earth (hard coded)
+    period = [0.2408467, 0.615197, 1.8808476, 11.862615, 29.447498, 84.016846, 164.79132]
+
 
     #oled stuff
     display1.fill(0)
@@ -225,7 +217,7 @@ def orbitTracker(name):
     longp = math.radians(longp)
     xpp = int((rad) * math.cos(longp))
     ypp = int((rad) * math.sin(longp))
-    graphics2.line(xc, yc, xc + xpp, yc + ypp, 1)
+    graphics2.line(xc, yc, xc + xpp, yc - ypp, 1)
 
     display2.text(name, 0, 0)
     display2.show()
@@ -246,7 +238,7 @@ def orbitTracker(name):
     display1.text('Next perihelion:',0,15)
     display1.text(years,0,25)
     display1.text('Orbital pd (yr):',0,38)
-    display1.text(str(round(period,1)),0,48)
+    display1.text(str(round(period[names.index(name)],1)),0,48)
     display1.show()
 
     gc.collect()
