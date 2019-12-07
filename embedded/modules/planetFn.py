@@ -445,61 +445,80 @@ def skyLocation(name):
     del r
     gc.collect()
 
+    #oled stuff
+    display1.fill(0)
+    display1.text(name, 0, 0)
+    display1.text("acquired!", 0, 10)
+    display1.show()
+    utime.sleep(1)
 
     # display stuff
-    oled.text(name, 0, 0)
-    oled.text("Visible:", 0,10)
-    oled.text(visible, 80,10)
-    oled.show()
+    display1.fill(0)
+    display2.fill(0)
+
+    display1.text(name, 0, 0)
+    display1.text("Visible:", 0,10)
+    display1.text(visible, 80,10)
+    display1.show()
 
     # sky chart
-    xc = 94
+    xc = 63
     yc = 31
     rad = 29
-    graphics.circle(xc, yc, rad, 1)
 
-    # show planet rise azimuth
+    # calculate planet rise azimuth
     x = int(round(rad * math.cos(math.radians(azr - 90)),0))
     y = int(round(rad * math.sin(math.radians(azr - 90)),0))
     xr = xc + x
     yr = yc + y
-    graphics.fill_circle(xr, yr, 2, 1)
 
-    # show planet set azimuth
+    # calculate planet set azimuth
     x = int(round(rad * math.cos(math.radians(azs - 90)),0))
     y = int(round(rad * math.sin(math.radians(azs - 90)),0))
     xs = xc + x
     ys = yc + y
-    graphics.fill_circle(xs, ys, 2, 1)
 
-    # show location at maximum altitude
-    rd = int(round(rad * math.cos(math.radians(alm)),0))
+    # calculate location at maximum altitude
+    rd = int(round(rad * (90 - alm)/90,0))
     x = int(round(rd * math.cos(math.radians(azm - 90)),0))
     y = int(round(rd * math.sin(math.radians(azm - 90)),0))
     xm = xc + x
     ym = yc + y
-    graphics.fill_circle(xm, ym, 2, 1)
 
-    # show current location if visible
+    # calculate current location if visible
     if visible == 'Yes':
-        rd = int(round(rad * math.cos(math.radians(alc)),0))
+        rd = int(round(rad * (90 - alc)/90,0))
         x = int(round(rd * math.cos(math.radians(azc - 90)),0))
         y = int(round(rd * math.sin(math.radians(azc - 90)),0))
         xcu = xc + x
         ycu = yc + y
-        graphics.circle(xcu, ycu, 2, 1)
 
-    # find path of transit
+    # find coefficients for path of transit
     A = matrix.matrix([[xr ** 2, xr, 1], [xm ** 2, xm, 1], [xs ** 2, xs, 1]])
-    B = matrix.matrix([[yr], [ym], [ys]])
+    B = matrix.matrix([[63 - yr], [63 - ym], [63 - ys]])
     d_i = linalg.det_inv(A)
     invA = d_i[1]
     X = linalg.dot(invA, B)
+    print(invA)
+    print(X)
 
+    # show location of rise, set, maximum altitude, and current location if visible on horizon circle
+    graphics2.circle(xc, yc, rad, 1)
+    graphics2.fill_circle(xr, yr, 2, 1)
+    graphics2.fill_circle(xs, ys, 2, 1)
+    graphics2.fill_circle(xm, ym, 2, 1)
+    if visible == 'Yes':
+        graphics2.circle(xcu, ycu, 2, 1)
+
+    # show path of transit
     for i in range(xr - xs):
-        x = xs + i
-        oled.pixel(x, yc - int((X[0] * x ** 2)) + int((X[1] * x)) + int(X[2]), 1)
+        xt = xs + i
+        yt = int((X[0] * xt ** 2) + (X[1] * xt) + X[2])
+        display2.pixel(xt, 63 - yt, 1)
+        print(xt)
+        print(yt)
 
-    oled.show()
+    display1.show()
+    display2.show()
 
     gc.collect()
