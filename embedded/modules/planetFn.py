@@ -5,6 +5,8 @@ import sh1106
 import gfx
 import math
 import utime
+import umatrix as matrix
+import ulinalg as linalg
 import urequests as requests
 from credentials import WOLFRAM_API_KEY
 
@@ -244,7 +246,7 @@ def orbitTracker(name):
     gc.collect()
 
 
-def skyChartSimple(name):
+def skyChart(name):
 
     #oled stuff
     display1.fill(0)
@@ -335,5 +337,169 @@ def skyChartSimple(name):
 
     display1.show()
     display2.show()
+
+    gc.collect()
+
+def skyLocation(name):
+    #oled stuff
+    display1.fill(0)
+    display1.text("getting:", 0, 0)
+    display1.text(name, 0, 10)
+    display1.show()
+    display2.fill(0)
+    display2.show()
+    utime.sleep(1)
+
+    # obtain planet above horizon from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20above%20horizon%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    visible = [x.strip() for x in r.text.split(',')]
+    visible = visible[0]
+    print(visible)
+    r.close()
+    del r
+    gc.collect()
+
+    # sky chart data
+    # obtain current planet azimuth from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azc = [x.strip() for x in r.text.split(',')]
+    azc = [x.strip() for x in azc[0].split()]
+    azc = azc[0]
+    azc = float(azc)
+    print(azc)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain planet azimuth rise from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20rise%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azr = [x.strip() for x in r.text.split(',')]
+    azr = [x.strip() for x in azr[0].split()]
+    azr = azr[0]
+    azr = float(azr)
+    print(azr)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain planet azimuth set from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20set%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azs = [x.strip() for x in r.text.split(',')]
+    azs = [x.strip() for x in azs[0].split()]
+    azs = azs[0]
+    azs = float(azs)
+    print(azs)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain planet azimuth at maximum altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20at%20time%20of%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azm = [x.strip() for x in r.text.split(',')]
+    azm = [x.strip() for x in azm[0].split()]
+    azm = azm[0]
+    azm = float(azm)
+    print(azm)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain current planet altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    alc = [x.strip() for x in r.text.split(',')]
+    alc = [x.strip() for x in alc[0].split()]
+    alc = alc[0]
+    alc = float(alc)
+    print(alc)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain max planet altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    alm = [x.strip() for x in r.text.split(',')]
+    alm = [x.strip() for x in alm[0].split()]
+    alm = alm[0]
+    alm = float(alm)
+    print(alm)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # display stuff
+    oled.text(name, 0, 0)
+    oled.text("Visible:", 0,10)
+    oled.text(visible, 80,10)
+    oled.show()
+
+    # sky chart
+    xc = 94
+    yc = 31
+    rad = 29
+    graphics.circle(xc, yc, rad, 1)
+
+    # show planet rise azimuth
+    x = int(round(rad * math.cos(math.radians(azr - 90)),0))
+    y = int(round(rad * math.sin(math.radians(azr - 90)),0))
+    xr = xc + x
+    yr = yc + y
+    graphics.fill_circle(xr, yr, 2, 1)
+
+    # show planet set azimuth
+    x = int(round(rad * math.cos(math.radians(azs - 90)),0))
+    y = int(round(rad * math.sin(math.radians(azs - 90)),0))
+    xs = xc + x
+    ys = yc + y
+    graphics.fill_circle(xs, ys, 2, 1)
+
+    # show location at maximum altitude
+    rd = int(round(rad * math.cos(math.radians(alm)),0))
+    x = int(round(rd * math.cos(math.radians(azm - 90)),0))
+    y = int(round(rd * math.sin(math.radians(azm - 90)),0))
+    xm = xc + x
+    ym = yc + y
+    graphics.fill_circle(xm, ym, 2, 1)
+
+    # show current location if visible
+    if visible == 'Yes':
+        rd = int(round(rad * math.cos(math.radians(alc)),0))
+        x = int(round(rd * math.cos(math.radians(azc - 90)),0))
+        y = int(round(rd * math.sin(math.radians(azc - 90)),0))
+        xcu = xc + x
+        ycu = yc + y
+        graphics.circle(xcu, ycu, 2, 1)
+
+    # find path of transit
+    A = matrix.matrix([[xr ** 2, xr, 1], [xm ** 2, xm, 1], [xs ** 2, xs, 1]])
+    B = matrix.matrix([[yr], [ym], [ys]])
+    d_i = linalg.det_inv(A)
+    invA = d_i[1]
+    X = linalg.dot(invA, B)
+
+    for i in range(xr - xs):
+        x = xs + i
+        oled.pixel(x, yc - int((X[0] * x ** 2)) + int((X[1] * x)) + int(X[2]), 1)
+
+    oled.show()
 
     gc.collect()

@@ -7,7 +7,7 @@ import math
 import utime
 import network
 from rotary_irq_esp import RotaryIRQ
-from planetFn import orbitTracker, skyChartSimple
+from planetFn import orbitTracker, skyChart, skyLocation
 from credentials import WIFI_SSID, WIFI_PASSWORD
 
 from machine import I2C, Pin, SPI
@@ -234,7 +234,10 @@ while True:
                     break
 
                 elif menufn == 'Sky Chart':
-                    skyChartSimple(name)
+                    skyChart(name)
+
+                elif menufn == 'Sky Location':
+                    skyLocation(name)
 
                 elif menufn == 'Orbital Data':
                     orbitTracker(name)

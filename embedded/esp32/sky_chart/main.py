@@ -2,20 +2,31 @@ import gc
 
 import network
 import ssd1306
+import sh1106
 import urequests as requests
 import gfx
 import math
 import utime
-import umatrix as matrix
-import ulinalg as linalg
-
-from machine import I2C, Pin
 
 from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
 
-oled_reset_pin = Pin(16, Pin.OUT)
-oled_reset_pin.value(1)
+from machine import I2C, Pin, SPI
 
+button = Pin(27, Pin.IN, Pin.PULL_UP)
+
+oled_reset_pin = Pin(16, Pin.OUT)
+
+hspi = SPI(1, 10000000, sck=Pin(18), mosi=Pin(23), miso=Pin(19))
+
+display = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(26), res=oled_reset_pin, cs=Pin(5))
+display2 = sh1106.SH1106_SPI(128, 64, hspi, dc=Pin(33), res=oled_reset_pin, cs=Pin(2))
+
+utime.sleep(1)
+
+display.sleep(False)
+display.rotate(1)
+display2.sleep(False)
+display2.rotate(1)
 utime.sleep(1)
 
 i2c = I2C(scl=Pin(15), sda=Pin(4))
@@ -24,10 +35,24 @@ oled = ssd1306.SSD1306_I2C(128, 64, i2c)
 utime.sleep(1)
 
 graphics = gfx.GFX(128, 64, oled.pixel)
+graphics1 = gfx.GFX(128, 64, display.pixel)
+graphics2 = gfx.GFX(128, 64, display2.pixel)
 
 oled.fill(0)
 oled.text('oled init',0,0,1)
+
+display.fill(0)
+display.text('display init',0,0,1)
+graphics1.circle(63, 32, 10, 1)
+
+display2.fill(0)
+display2.text('display2 init',0,0,1)
+graphics2.circle(63, 32, 10, 1)
+
 oled.show()
+display.show()
+display2.show()
+
 utime.sleep(1)
 
 def do_connect():
@@ -48,16 +73,16 @@ oled.text('wifi connected',0,0,1)
 oled.show()
 utime.sleep(1)
 
-
 names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
 
-visible_i = [0, 0, 0, 0, 0, 0, 0]  # currently above horizon
-alc_i = [0, 0, 0, 0, 0, 0, 0]  # current altitude
-alm_i = [0, 0, 0, 0, 0, 0, 0]  # maximum altitude
-azc_i = [0, 0, 0, 0, 0, 0, 0]  # current azimuth
-azr_i = [0, 0, 0, 0, 0, 0, 0]  # azimuth at planet rise
-azs_i = [0, 0, 0, 0, 0, 0, 0]  # aximuth at planet set
-azm_i = [0, 0, 0, 0, 0, 0, 0]  # azimuth at maximum altitude
+visible_i = [0, 0, 0, 0, 0, 0, 0]
+al_i = [0, 0, 0, 0, 0, 0, 0]
+az_i = [0, 0, 0, 0, 0, 0, 0]
+
+oled.fill(0)
+oled.text('begin loop',0,0,1)
+oled.show()
+utime.sleep(1)
 
 while True:
     for index, name in enumerate(names):
@@ -81,96 +106,35 @@ while True:
         # save planet data to list
         visible_i[index] = visible
 
-        # sky chart data
-        # obtain current planet azimuth from wolframalpha API
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        azc = [x.strip() for x in r.text.split(',')]
-        azc = [x.strip() for x in azc[0].split()]
-        azc = azc[0]
-        azc = float(azc)
-        print(azc)
-        r.close()
-        del r
-        gc.collect()
-        # save planet data to list
-        azc_i[index] = azc
-
-        # obtain planet azimuth rise from wolframalpha API
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20rise%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        azr = [x.strip() for x in r.text.split(',')]
-        azr = [x.strip() for x in azr[0].split()]
-        azr = azr[0]
-        azr = float(azr)
-        print(azr)
-        r.close()
-        del r
-        gc.collect()
-        # save planet data to list
-        azr_i[index] = azr
-
-        # obtain planet azimuth set from wolframalpha API
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20set%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        azs = [x.strip() for x in r.text.split(',')]
-        azs = [x.strip() for x in azs[0].split()]
-        azs = azs[0]
-        azs = float(azs)
-        print(azs)
-        r.close()
-        del r
-        gc.collect()
-        # save planet data to list
-        azs_i[index] = azs
-
-        # obtain planet azimuth at maximum altitude from wolframalpha API
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20at%20time%20of%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        azm = [x.strip() for x in r.text.split(',')]
-        azm = [x.strip() for x in azm[0].split()]
-        azm = azm[0]
-        azm = float(azm)
-        print(azm)
-        r.close()
-        del r
-        gc.collect()
-        # save planet data to list
-        azm_i[index] = azm
-
-        # obtain current planet altitude from wolframalpha API
+        # obtain planet altitude from wolframalpha API
         url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
-        alc = [x.strip() for x in r.text.split(',')]
-        alc = [x.strip() for x in alc[0].split()]
-        alc = alc[0]
-        alc = float(alc)
-        print(alc)
+        al = [x.strip() for x in r.text.split(',')]
+        al = [x.strip() for x in al[0].split()]
+        al = al[0]
+        al = float(al)
+        print(al)
         r.close()
         del r
         gc.collect()
         # save planet data to list
-        alc_i[index] = alc
+        al_i[index] = al
 
-        # obtain max planet altitude from wolframalpha API
-        url = "http://api.wolframalpha.com/v1/result?i={0}%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        # obtain planet azimuth from wolframalpha API
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
-        alm = [x.strip() for x in r.text.split(',')]
-        alm = [x.strip() for x in alm[0].split()]
-        alm = alm[0]
-        alm = float(alm)
-        print(alm)
+        az = [x.strip() for x in r.text.split(',')]
+        az = [x.strip() for x in az[0].split()]
+        az = az[0]
+        az = float(az)
+        print(az)
         r.close()
         del r
         gc.collect()
         # save planet data to list
-        alm_i[index] = alm
+        az_i[index] = az
 
         #oled stuff
         oled.fill(0)
@@ -189,56 +153,32 @@ while True:
         oled.text(visible_i[index], 80,10)
         oled.show()
 
-        # sky chart
-        xc = 94
-        yc = 31
-        rad = 29
-        graphics.circle(xc, yc, rad, 1)
-
-        # show planet rise azimuth
-        x = int(round(rad * math.cos(math.radians(azr_i[index] - 90)),0))
-        y = int(round(rad * math.sin(math.radians(azr_i[index] - 90)),0))
-        xr = xc + x
-        yr = yc + y
-        graphics.fill_circle(xr, yr, 2, 1)
-
-        # show planet set azimuth
-        x = int(round(rad * math.cos(math.radians(azs_i[index] - 90)),0))
-        y = int(round(rad * math.sin(math.radians(azs_i[index] - 90)),0))
-        xs = xc + x
-        ys = yc + y
-        graphics.fill_circle(xs, ys, 2, 1)
-
-        # show location at maximum altitude
-        rd = int(round(rad * math.cos(math.radians(alm_i[index])),0))
-        x = int(round(rd * math.cos(math.radians(azm_i[index] - 90)),0))
-        y = int(round(rd * math.sin(math.radians(azm_i[index] - 90)),0))
-        xm = xc + x
-        ym = yc + y
-        graphics.fill_circle(xm, ym, 2, 1)
-
-        # show current location if visible
+        # show planet altitude
         if visible_i[index] == 'Yes':
-            rd = int(round(rad * math.cos(math.radians(alc_i[index])),0))
-            x = int(round(rd * math.cos(math.radians(azc_i[index] - 90)),0))
-            y = int(round(rd * math.sin(math.radians(azc_i[index] - 90)),0))
-            xcu = xc + x
-            ycu = yc + y
-            graphics.circle(xcu, ycu, 2, 1)
+            oled.line(0, 48, 18, 48, 1)
+            y = 18 * math.sin(math.radians(al_i[index]))
+            y = int(round(y,0))
+            oled.line(0, 48, 18, 48 - y, 1)
+            oled.text(str(round(al_i[index])), 22, 42)
 
-        # find path of transit
-        A = matrix.matrix([[xr ** 2, xr, 1], [xm ** 2, xm, 1], [xs ** 2, xs, 1]])
-        B = matrix.matrix([[yr], [ym], [ys]])
-        d_i = linalg.det_inv(A)
-        invA = d_i[1]
-        X = linalg.dot(invA, B)
-
-        for i in range(xr - xs):
-            x = xs + i
-            oled.pixel(x, yc - int((X[0] * x ** 2)) + int((X[1] * x)) + int(X[2]), 1)
-
+        # show planet azimuth
+        xc = 80
+        yc = 48
+        rad = 10
+        oled.text("N", xc - 3, 30)
+        oled.text(str(round(az_i[index])), xc + 15, 42)
+        graphics.circle(xc, yc, rad, 1)
+        x = rad * math.cos(math.radians(az_i[index] - 90))
+        x = round(x,0)
+        y = rad * math.sin(math.radians(az_i[index] - 90))
+        y = round(y,0)
+        oled.line(xc, yc, int(xc + x), int(yc + y), 1)
         oled.show()
+
         utime.sleep(10)
+
+        oled.fill(0)
+        oled.show()
 
     # collect garbage just in case that is causing the crashes
     gc.collect()
