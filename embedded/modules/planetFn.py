@@ -350,102 +350,100 @@ def skyLocation(name):
     display2.show()
     utime.sleep(1)
 
-#    # obtain planet above horizon from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20above%20horizon%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    visible = [x.strip() for x in r.text.split(',')]
-#    visible = visible[0]
-#    print(visible)
-#    r.close()
-#    del r
-#    gc.collect()
-#
-#    # sky chart data
-#    # obtain current planet azimuth from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    azc = [x.strip() for x in r.text.split(',')]
-#    azc = [x.strip() for x in azc[0].split()]
-#    azc = azc[0]
-#    azc = float(azc)
-#    print(azc)
-#    r.close()
-#    del r
-#    gc.collect()
-#
-#
-#    # obtain planet azimuth rise from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20rise%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    azr = [x.strip() for x in r.text.split(',')]
-#    azr = [x.strip() for x in azr[0].split()]
-#    azr = azr[0]
-#    azr = float(azr)
-#    print(azr)
-#    r.close()
-#    del r
-#    gc.collect()
-#
-#
-#    # obtain planet azimuth set from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20set%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    azs = [x.strip() for x in r.text.split(',')]
-#    azs = [x.strip() for x in azs[0].split()]
-#    azs = azs[0]
-#    azs = float(azs)
-#    print(azs)
-#    r.close()
-#    del r
-#    gc.collect()
-#
-#
-#    # obtain planet azimuth at maximum altitude from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20at%20time%20of%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    azm = [x.strip() for x in r.text.split(',')]
-#    azm = [x.strip() for x in azm[0].split()]
-#    azm = azm[0]
-#    azm = float(azm)
-#    print(azm)
-#    r.close()
-#    del r
-#    gc.collect()
-#
-#
-#    # obtain current planet altitude from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    alc = [x.strip() for x in r.text.split(',')]
-#    alc = [x.strip() for x in alc[0].split()]
-#    alc = alc[0]
-#    alc = float(alc)
-#    print(alc)
-#    r.close()
-#    del r
-#    gc.collect()
-#
-#
-#    # obtain max planet altitude from wolframalpha API
-#    url = "http://api.wolframalpha.com/v1/result?i={0}%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-#    r = requests.get(url)
-#    print(r.text)
-#    alm = [x.strip() for x in r.text.split(',')]
-#    alm = [x.strip() for x in alm[0].split()]
-#    alm = alm[0]
-#    alm = float(alm)
-#    print(alm)
-#    r.close()
-#    del r
-#    gc.collect()
+    # obtain planet above horizon from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20above%20horizon%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    visible = [x.strip() for x in r.text.split(',')]
+    visible = visible[0]
+    print(visible)
+    r.close()
+    del r
+    gc.collect()
+
+    # sky chart data
+    # obtain current planet azimuth from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azc = [x.strip() for x in r.text.split(',')]
+    azc = [x.strip() for x in azc[0].split()]
+    azc = azc[0]
+    azc = float(azc)
+    print(azc)
+    r.close()
+    del r
+    gc.collect()
 
 
+    # obtain planet azimuth rise from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20rise%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azr = [x.strip() for x in r.text.split(',')]
+    azr = [x.strip() for x in azr[0].split()]
+    azr = azr[0]
+    azr = float(azr)
+    print(azr)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain planet azimuth set from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20set%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azs = [x.strip() for x in r.text.split(',')]
+    azs = [x.strip() for x in azs[0].split()]
+    azs = azs[0]
+    azs = float(azs)
+    print(azs)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain planet azimuth at maximum altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%20at%20time%20of%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    azm = [x.strip() for x in r.text.split(',')]
+    azm = [x.strip() for x in azm[0].split()]
+    azm = azm[0]
+    azm = float(azm)
+    print(azm)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain current planet altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    alc = [x.strip() for x in r.text.split(',')]
+    alc = [x.strip() for x in alc[0].split()]
+    alc = alc[0]
+    alc = float(alc)
+    print(alc)
+    r.close()
+    del r
+    gc.collect()
+
+
+    # obtain max planet altitude from wolframalpha API
+    url = "http://api.wolframalpha.com/v1/result?i={0}%20maximum%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    alm = [x.strip() for x in r.text.split(',')]
+    alm = [x.strip() for x in alm[0].split()]
+    alm = alm[0]
+    alm = float(alm)
+    print(alm)
+    r.close()
+    del r
+    gc.collect()
 
 
     #oled stuff
@@ -464,14 +462,14 @@ def skyLocation(name):
     display1.text(visible, 80,10)
     display1.show()
 
-    #test values
-    visible="Yes"
-    azc = 234
-    azr = 113
-    azs = 246
-    azm = 180
-    alc = 11
-    alm = 32
+#    #test values
+#    visible="Yes"
+#    azc = 234
+#    azr = 113
+#    azs = 246
+#    azm = 180
+#    alc = 11
+#    alm = 32
 
     # sky chart
     xc = 63
@@ -506,44 +504,35 @@ def skyLocation(name):
         ycu = yc + y
 
     # find coefficients for path of transit
-#    A = matrix.matrix([[xr ** 2, xr, 1], [xm ** 2, xm, 1], [xs ** 2, xs, 1]])
-#    B = matrix.matrix([[63 - yr], [63 - ym], [63 - ys]])
-#    d_i = linalg.det_inv(A)
-#    invA = d_i[1]
-#    X = linalg.dot(invA, B)
     A = [[xr ** 2, xr, 1], [xm ** 2, xm, 1], [xs ** 2, xs, 1]]
-    B = [[63 - yr], [63 - ym], [63 - ys]]
+    B = [63 - yr, 63 - ym, 63 - ys]
 
     detA = (A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1] - A[0][2]*A[1][1]*A[2][0] - A[0][1]*A[1][0]*A[2][2] - A[0][0]*A[1][2]*A[2][1])
 
-    adjA = [[A[1][1]*A[2][2] - A[1][2]*A[2][1], -(A[0][1]*A[2][2] - A[0][2]*A[2][1]), A[0][1]*A[1][2] - A[0][2]*A[1][1]],
-             [-(A[1][0]*A[2][2] - A[1][2]*A[2][0]), A[0][0]*A[2][2] - A[0][2]*A[2][1], -(A[0][0]*A[1][2] - A[0][2]*A[1][0])],
-             [A[1][0]*A[2][1] - A[1][1]*A[2][0], -(A[0][0]*A[2][1] - A[0][1]*A[2][0]), A[0][0]*A[1][1] - A[0][1]*A[1][0]]]
 
     invA = [[(A[1][1]*A[2][2] - A[1][2]*A[2][1])/detA, -(A[0][1]*A[2][2] - A[0][2]*A[2][1])/detA, (A[0][1]*A[1][2] - A[0][2]*A[1][1])/detA],
-             [-(A[1][0]*A[2][2] - A[1][2]*A[2][0])/detA, (A[0][0]*A[2][2] - A[0][2]*A[2][1])/detA, -(A[0][0]*A[1][2] - A[0][2]*A[1][0])/detA],
+             [-(A[1][0]*A[2][2] - A[1][2]*A[2][0])/detA, (A[0][0]*A[2][2] - A[0][2]*A[2][0])/detA, -(A[0][0]*A[1][2] - A[0][2]*A[1][0])/detA],
              [(A[1][0]*A[2][1] - A[1][1]*A[2][0])/detA, -(A[0][0]*A[2][1] - A[0][1]*A[2][0])/detA, (A[0][0]*A[1][1] - A[0][1]*A[1][0])/detA]]
 
+    X = [invA[0][0]*B[0] + invA[0][1]*B[1] + invA[0][2]*B[2],
+         invA[1][0]*B[0] + invA[1][1]*B[1] + invA[1][2]*B[2],
+         invA[2][0]*B[0] + invA[2][1]*B[1] + invA[2][2]*B[2]]
 
-
-
-#    # show location of rise, set, maximum altitude, and current location if visible on horizon circle
-#    graphics2.circle(xc, yc, rad, 1)
-#    graphics2.fill_circle(xr, yr, 2, 1)
-#    graphics2.fill_circle(xs, ys, 2, 1)
-#    graphics2.fill_circle(xm, ym, 2, 1)
-#    if visible == 'Yes':
-#        graphics2.circle(xcu, ycu, 2, 1)
+    # show location of rise, set, maximum altitude, and current location if visible on horizon circle
+    graphics2.circle(xc, yc, rad, 1)
+    graphics2.fill_circle(xr, yr, 2, 1)
+    graphics2.fill_circle(xs, ys, 2, 1)
+    graphics2.fill_circle(xm, ym, 2, 1)
+    if visible == 'Yes':
+        graphics2.circle(xcu, ycu, 2, 1)
 
     # show path of transit
     xt = [0] * (xr-xs)
     yt = [0] * (xr-xs)
     for i in range(xr - xs):
-        xt[i] = xs + i
-        yt[i] = int((X[0] * xt[i] ** 2) + (X[1] * xt[i]) + X[2])
-#        display2.pixel(xt, 63 - yt, 1)
-        print(xt)
-        print(yt)
+        xt = xs + i
+        yt = int((X[0] * xt ** 2) + (X[1] * xt) + X[2])
+        display2.pixel(xt, 63 - yt, 1)
 
     display1.show()
     display2.show()
