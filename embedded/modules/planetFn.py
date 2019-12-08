@@ -5,8 +5,6 @@ import sh1106
 import gfx
 import math
 import utime
-import umatrix as matrix
-import ulinalg as linalg
 import urequests as requests
 from credentials import WOLFRAM_API_KEY
 
