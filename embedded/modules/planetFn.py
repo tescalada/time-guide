@@ -462,15 +462,6 @@ def skyLocation(name):
     display1.text(visible, 80,10)
     display1.show()
 
-#    #test values
-#    visible="Yes"
-#    azc = 234
-#    azr = 113
-#    azs = 246
-#    azm = 180
-#    alc = 11
-#    alm = 32
-
     # sky chart
     xc = 63
     yc = 31
