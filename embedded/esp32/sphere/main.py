@@ -1,5 +1,3 @@
-import gc
-
 import ssd1306
 import sh1106
 import gfx
@@ -47,6 +45,7 @@ zr = 0
 
 sphere(rad, xc, yc, f, xr, yr, zr)
 display1.show()
+utime.sleep(5)
 
 
 #rad = 30
