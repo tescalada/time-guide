@@ -250,16 +250,15 @@ def sphere(rad, xc, yc, f, xr, yr, zr):
         graphics1.line(X2[i + 49], Y2[i + 49], X2[i + 50], Y2[i + 50], 1)
 
     #missing lines
-        #60 line
-        graphics1.line(X2[1], Y2[1], X2[12], Y2[12], 1)
-        #30 line
-        graphics1.line(X2[13], Y2[13], X2[24], Y2[24], 1)
-        #0 line
-        graphics1.line(X2[25], Y2[25], X2[36], Y2[36], 1)
-        #-30 line
-        graphics1.line(X2[37], Y2[37], X2[48], Y2[48], 1)
-        #-60 line
-        graphics1.line(X2[49], Y2[49], X2[60], Y2[60], 1)
+    #60 line
+    graphics1.line(X2[1], Y2[1], X2[12], Y2[12], 1)
+    #30 line
+    graphics1.line(X2[13], Y2[13], X2[24], Y2[24], 1)
+    #0 line
+    graphics1.line(X2[25], Y2[25], X2[36], Y2[36], 1)
+    #-30 line
+    graphics1.line(X2[37], Y2[37], X2[48], Y2[48], 1)
+    #-60 line
+    graphics1.line(X2[49], Y2[49], X2[60], Y2[60], 1)
 
-    del X2, Y2
     gc.collect()
