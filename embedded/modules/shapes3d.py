@@ -118,6 +118,7 @@ def cube(rad, xc, yc, f, xr, yr, zr):
     del X3, Y3, Z3
     gc.collect()
 
+    display1.fill(0)
     for i in range(3):
         # draw top half
         graphics1.line(X2[i], Y2[i], X2[i + 1], Y2[i + 1], 1)
@@ -130,6 +131,7 @@ def cube(rad, xc, yc, f, xr, yr, zr):
     graphics1.line(X2[3], Y2[3], X2[0], Y2[0], 1)
     graphics1.line(X2[7], Y2[7], X2[4], Y2[4], 1)
     graphics1.line(X2[7], Y2[7], X2[3], Y2[3], 1)
+    display1.show()
 
     gc.collect()
 
@@ -261,4 +263,5 @@ def sphere(rad, xc, yc, f, xr, yr, zr):
     #-60 line
     graphics1.line(X2[49], Y2[49], X2[60], Y2[60], 1)
 
+    display1.show()
     gc.collect()
