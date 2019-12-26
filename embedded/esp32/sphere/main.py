@@ -34,29 +34,28 @@ oled.fill(0)
 oled.text('oled init',0,0,1)
 oled.show()
 
+for p in range(72):
 
-rad = 30
-xc = 63
-yc = 31
-f = yc * 6
-xr = 30
-yr = 0
-zr = 0
+    rad = 30
+    xc = 33
+    yc = 31
+    f = yc * 8
+    xr = 0
+    yr = p * 5
+    zr = 23
 
-sphere(rad, xc, yc, f, xr, yr, zr)
-display1.show()
-utime.sleep(5)
+    sphere(rad, xc, yc, f, xr, yr, zr)
 
+    rad = 10
+    xc = 93
+    yc = 31
+    f = yc * 6
+    xr = p * 5
+    yr = 30
+    zr = 0
 
-#rad = 30
-#xc = 63
-#yc = 31
-#f = yc * 8
-#xr = 30
-#yr = 0
-#zr = 0
-#
-#sphere(rad, xc, yc, f, xr, yr, zr)
+    cube(rad, xc, yc, f, xr, yr, zr)
+    utime.sleep(0.1)
 
 
 
