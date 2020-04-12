@@ -18,14 +18,16 @@ ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put ulinalg.py
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put umatrix.py
 
 
-ulinalg.py
-
 cd micropython-rotary-master
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put rotary.py
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put rotary_irq_esp.py
 
-
+cd ..
+cd ..
+cd esp32/planet_scale
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put main.py
+ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put credentials.py
+
 
 screen /dev/tty.SLAB_USBtoUART 115200
 # in screen, hit CTRL-A, k, y to quit and return to terminal

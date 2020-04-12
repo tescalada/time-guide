@@ -6,6 +6,7 @@ import gfx
 import math
 import utime
 import urequests as requests
+import urandom as random
 from credentials import WOLFRAM_API_KEY
 
 from machine import I2C, Pin, SPI
@@ -527,3 +528,48 @@ def skyLocation(name):
     display2.show()
 
     gc.collect()
+
+
+def initStar(i, star_x, star_y, star_z):
+    if random.getrandbits(1) == 0:
+        sign = 1
+    else:
+        sign = -1
+
+    star_x[i] = int(100 * sign * random.getrandbits(9)/512)
+
+    if random.getrandbits(1) == 0:
+        sign = 1
+    else:
+        sign = -1
+
+    star_y[i] = int(50 * sign * random.getrandbits(9)/512)
+
+    star_z[i] = 100 + int(400 * random.getrandbits(9)/512)
+
+
+
+def showStarfield(stars, star_x, star_y, star_z, xc, yc):
+    for i in range(stars):
+
+        star_z[i] = star_z[i] - 10
+
+        if star_z[i] < 1:
+            initStar(i, star_x, star_y, star_z)
+
+        x = int(star_x[i] / star_z[i] * 100 + xc)
+        y = int(star_y[i] / star_z[i] * 100 + yc)
+
+        if x < 0 or y < 0 or x > 127 or y > 63:
+            initStar(i, star_x, star_y, star_z)
+
+        oled.pixel(x, y, 1)
+        display1.pixel(x, y, 1)
+        display2.pixel(x, y, 1)
+
+    oled.show()
+    display1.show()
+    display2.show()
+    oled.fill(0)
+    display1.fill(0)
+    display2.fill(0)
