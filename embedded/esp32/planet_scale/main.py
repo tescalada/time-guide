@@ -7,6 +7,7 @@ import math
 import utime
 import network
 from rotary_irq_esp import RotaryIRQ
+from shapes3d import sphere
 from planetFn import orbitTracker, skyChart, skyLocation, initStar, showStarfield
 from credentials import WIFI_SSID, WIFI_PASSWORD
 
@@ -115,7 +116,7 @@ def planetMenu():
 
 #define planet menu parameters
 names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
-menu = ['Planet Menu', 'Sky Location', 'Sky Chart', 'Orbital Data']
+menu = ['Planet Menu', 'Sky Location', 'Sky Chart', 'Orbital Data', 'Orbit 3d']
 
 sdist_i = [0.417, 0.723, 1.64, 5.3, 10.1, 19.8, 29.9]
 
@@ -219,7 +220,6 @@ while True:
         oled.show()
 
         while True:
-
             planetMenu()
 
             if not button.value():
@@ -260,12 +260,55 @@ while True:
 
                         elif menufn == 'Sky Chart':
                             skyChart(name)
+                            val2 = r2.value()
+                            if lastval2 != val2:
+                                    display1.fill(0)
+                                    display2.fill(0)
+                                    display1.show()
+                                    display2.show()
+                                    break
 
                         elif menufn == 'Sky Location':
                             skyLocation(name)
+                            val2 = r2.value()
+                            if lastval2 != val2:
+                                    display1.fill(0)
+                                    display2.fill(0)
+                                    display1.show()
+                                    display2.show()
+                                    break
 
                         elif menufn == 'Orbital Data':
                             orbitTracker(name)
+                            val2 = r2.value()
+                            if lastval2 != val2:
+                                    display1.fill(0)
+                                    display2.fill(0)
+                                    display1.show()
+                                    display2.show()
+                                    break
+
+                        elif menufn == 'Orbit 3d':
+                            display2.fill(0)
+                            display2.show()
+                            n = 0
+                            while n >= 0:
+                                rad = 30
+                                xc = int(65 + 50 * math.sin(n))
+                                yc = int(33 + 20 * math.sin(n))
+                                f = int(121 + 120 * math.cos(n))
+                                xr = 0
+                                yr = int(n * 25)
+                                zr = 23
+                                sphere(rad, xc, yc, f, xr, yr, zr)
+                                n += 0.25
+                                val2 = r2.value()
+                                if lastval2 != val2:
+                                    display1.fill(0)
+                                    display2.fill(0)
+                                    display1.show()
+                                    display2.show()
+                                    break
 
                     val2 = r2.value()
                     if lastval2 != val2:

@@ -40,6 +40,7 @@ names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
 
 
 def orbitTracker(name):
+
     # earth heliocentric longitude
     url = "http://api.wolframalpha.com/v1/result?i=earth%20heliocentric%20longitude%3F&appid={0}".format(WOLFRAM_API_KEY)
     r = requests.get(url)
@@ -54,11 +55,18 @@ def orbitTracker(name):
     elong = math.radians(elong)
 
     #oled stuff
+    oled.fill(0)
+    oled.text("Orbital Data", 0, 0)
+    oled.text("Acquiring data:", 0, 12)
+    oled.text(name, 0, 24)
+    graphics.circle(10, 40, 3, 1)
+    graphics.circle(20, 40, 3, 1)
+    graphics.circle(30, 40, 3, 1)
+    graphics.circle(40, 40, 3, 1)
     display1.fill(0)
-    display1.text("getting:", 0, 0)
-    display1.text(name, 0, 10)
-    display1.show()
     display2.fill(0)
+    oled.show()
+    display1.show()
     display2.show()
     utime.sleep(1)
 
@@ -74,6 +82,9 @@ def orbitTracker(name):
     print(long)
     long = float(long)
 
+    graphics.fill_circle(10, 40, 2, 1)
+    oled.show()
+
     # perihelion data
     url = "http://api.wolframalpha.com/v1/result?i={0}%20next%20periapsis%3F&appid={1}".format(name, WOLFRAM_API_KEY)
     r = requests.get(url)
@@ -84,6 +95,9 @@ def orbitTracker(name):
     r.close()
     del r
     gc.collect()
+
+    graphics.fill_circle(20, 40, 2, 1)
+    oled.show()
 
     # heliocentric longitude @ next perihelion
     url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%20at%20next%20perihelion%3F&appid={1}".format(name, WOLFRAM_API_KEY)
@@ -96,6 +110,9 @@ def orbitTracker(name):
     del r
     print(longp)
     longp = float(longp)
+
+    graphics.fill_circle(30, 40, 2, 1)
+    oled.show()
 
     # distance from earth
     url = "http://api.wolframalpha.com/v1/result?i={0}%20distance%20from%20earth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
@@ -110,16 +127,20 @@ def orbitTracker(name):
     print(dist)
     dist = float(dist)
 
+    graphics.fill_circle(40, 40, 2, 1)
+    oled.show()
+    utime.sleep(1)
+
+    #oled stuff
+    oled.fill(0)
+    oled.text("Orbital Data", 0, 0)
+    oled.text(name, 0, 12)
+    oled.text("acquired!", 0, 24)
+    oled.show()
+
     #periods of planets without earth (hard coded)
     period = [0.2408467, 0.615197, 1.8808476, 11.862615, 29.447498, 84.016846, 164.79132]
 
-
-    #oled stuff
-    display1.fill(0)
-    display1.text(name, 0, 0)
-    display1.text("acquired!", 0, 10)
-    display1.show()
-    utime.sleep(1)
 
     # create log scale of sizes of planets
     arb = 0.9
@@ -248,11 +269,17 @@ def orbitTracker(name):
 def skyChart(name):
 
     #oled stuff
+    oled.fill(0)
+    oled.text("Sky Chart", 0, 0)
+    oled.text("Acquiring data:", 0, 12)
+    oled.text(name, 0, 24)
+    graphics.circle(10, 40, 3, 1)
+    graphics.circle(20, 40, 3, 1)
+    graphics.circle(30, 40, 3, 1)
     display1.fill(0)
-    display1.text("getting:", 0, 0)
-    display1.text(name, 0, 10)
-    display1.show()
     display2.fill(0)
+    oled.show()
+    display1.show()
     display2.show()
     utime.sleep(1)
 
@@ -266,6 +293,9 @@ def skyChart(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(10, 40, 3, 1)
+    oled.show()
+
 
     # sky chart data
     # obtain current planet azimuth from wolframalpha API
@@ -280,6 +310,9 @@ def skyChart(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(20, 40, 3, 1)
+    oled.show()
+
 
     # obtain current planet altitude from wolframalpha API
     url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
@@ -293,13 +326,19 @@ def skyChart(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(30, 40, 3, 1)
+    oled.show()
+    utime.sleep(1)
+
 
     #oled stuff
-    display1.fill(0)
-    display1.text(name, 0, 0)
-    display1.text("acquired!", 0, 10)
-    display1.show()
+    oled.fill(0)
+    oled.text("Sky Chart", 0, 0)
+    oled.text(name, 0, 12)
+    oled.text("acquired!", 0, 24)
+    oled.show()
     utime.sleep(1)
+
 
     # display stuff
     display1.fill(0)
@@ -340,12 +379,23 @@ def skyChart(name):
     gc.collect()
 
 def skyLocation(name):
+
     #oled stuff
+    oled.fill(0)
+    oled.text("Sky Location", 0, 0)
+    oled.text("Acquiring data:", 0, 12)
+    oled.text(name, 0, 24)
+    graphics.circle(10, 40, 3, 1)
+    graphics.circle(20, 40, 3, 1)
+    graphics.circle(30, 40, 3, 1)
+    graphics.circle(40, 40, 3, 1)
+    graphics.circle(50, 40, 3, 1)
+    graphics.circle(60, 40, 3, 1)
+    graphics.circle(70, 40, 3, 1)
     display1.fill(0)
-    display1.text("getting:", 0, 0)
-    display1.text(name, 0, 10)
-    display1.show()
     display2.fill(0)
+    oled.show()
+    display1.show()
     display2.show()
     utime.sleep(1)
 
@@ -359,6 +409,9 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(10, 40, 3, 1)
+    oled.show()
+
 
     # sky chart data
     # obtain current planet azimuth from wolframalpha API
@@ -373,6 +426,8 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(20, 40, 3, 1)
+    oled.show()
 
 
     # obtain planet azimuth rise from wolframalpha API
@@ -387,6 +442,8 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(30, 40, 3, 1)
+    oled.show()
 
 
     # obtain planet azimuth set from wolframalpha API
@@ -401,6 +458,8 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(40, 40, 3, 1)
+    oled.show()
 
 
     # obtain planet azimuth at maximum altitude from wolframalpha API
@@ -415,6 +474,8 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(50, 40, 3, 1)
+    oled.show()
 
 
     # obtain current planet altitude from wolframalpha API
@@ -429,6 +490,8 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(60, 40, 3, 1)
+    oled.show()
 
 
     # obtain max planet altitude from wolframalpha API
@@ -443,13 +506,17 @@ def skyLocation(name):
     r.close()
     del r
     gc.collect()
+    graphics.fill_circle(70, 40, 3, 1)
+    oled.show()
+    utime.sleep(1)
 
 
     #oled stuff
-    display1.fill(0)
-    display1.text(name, 0, 0)
-    display1.text("acquired!", 0, 10)
-    display1.show()
+    oled.fill(0)
+    oled.text("Sky Location", 0, 0)
+    oled.text(name, 0, 12)
+    oled.text("acquired!", 0, 24)
+    oled.show()
     utime.sleep(1)
 
     # display stuff

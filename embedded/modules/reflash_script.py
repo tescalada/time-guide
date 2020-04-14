@@ -14,8 +14,7 @@ ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put ssd1306.py
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put sh1106.py
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put gfx.py
 ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put PlanetFn.py
-ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put ulinalg.py
-ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put umatrix.py
+ampy --port /dev/tty.SLAB_USBtoUART --baud 115200 put shapes3d.py
 
 
 cd micropython-rotary-master
