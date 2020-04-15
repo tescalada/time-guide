@@ -7,9 +7,11 @@ import math
 import utime
 import network
 from rotary_irq_esp import RotaryIRQ
-from shapes3d import sphere
+#from shapes3d import sphere
 from planetFn import orbitTracker, skyChart, skyLocation, initStar, showStarfield
-from credentials import WIFI_SSID, WIFI_PASSWORD
+from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
+import urequests as requests
+from scron.week import simple_cron
 
 from machine import I2C, Pin, SPI
 
@@ -58,23 +60,6 @@ oled.show()
 utime.sleep(1)
 
 
-oled.fill(0)
-oled.text('oled init',0,0,1)
-oled.show()
-
-display1.fill(0)
-display1.text('display init',0,0,1)
-graphics1.circle(63, 32, 10, 1)
-
-display2.fill(0)
-display2.text('display2 init',0,0,1)
-graphics2.circle(63, 32, 10, 1)
-
-display1.show()
-display2.show()
-
-utime.sleep(1)
-
 def planetMenu():
     global lastval
 
@@ -114,38 +99,93 @@ def planetMenu():
 
     utime.sleep_ms(50)
 
+def orbit_loc_all():
+    for index, name in enumerate (names_e):
+        #heliocentric longitude
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20heliocentric%20longitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        r = requests.get(url)
+        print(r.text)
+        long = [x.strip() for x in r.text.split(',')]
+        long = [x.strip() for x in long[0].split()]
+        long = long[0]
+        r.close()
+        del r
+        print(long)
+        long = int(long)
+
+        xp[index] = int(rad_i[index] * math.cos(math.radians(long)))
+        yp[index] = int(rad_i[index] * math.sin(math.radians(long)))
+
+    for index, name in enumerate (names):
+        # obtain planet above horizon from wolframalpha API
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20above%20horizon%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        r = requests.get(url)
+        print(r.text)
+        visible[index] = [x.strip() for x in r.text.split(',')]
+        visible[index] = visible[index][0]
+        print(visible[index])
+        r.close()
+        del r
+        gc.collect()
+
+        # obtain current planet azimuth from wolframalpha API
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20azimuth%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        r = requests.get(url)
+        print(r.text)
+        azc = [x.strip() for x in r.text.split(',')]
+        azc = [x.strip() for x in azc[0].split()]
+        azc = azc[0]
+        azc = float(azc)
+        print(azc)
+        r.close()
+        del r
+        gc.collect()
+
+        # obtain current planet altitude from wolframalpha API
+        url = "http://api.wolframalpha.com/v1/result?i={0}%20altitude%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        r = requests.get(url)
+        print(r.text)
+        alc = [x.strip() for x in r.text.split(',')]
+        alc = [x.strip() for x in alc[0].split()]
+        alc = alc[0]
+        alc = float(alc)
+        print(alc)
+        r.close()
+        del r
+        gc.collect()
+
+        # calculate current location if visible
+        rad = 29
+
+        if visible[index] == 'Yes':
+            rd = int(round(rad * (90 - alc)/90,0))
+            x = int(round(rd * math.cos(math.radians(azc - 90)),0))
+            y = int(round(rd * math.sin(math.radians(azc - 90)),0))
+            xcu[index] = xcp + x
+            ycu[index] = ycp + y
+
+
 #define planet menu parameters
 names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
-menu = ['Planet Menu', 'Sky Location', 'Sky Chart', 'Orbital Data', 'Orbit 3d']
+names_e = ['Mercury', 'Venus', 'Mars', 'Earth', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+xp = [0, 0, 0, 0, 0, 0, 0, 0]
+yp = [0, 0, 0, 0, 0, 0, 0, 0]
+visible = [0, 0, 0, 0, 0, 0, 0]
+xcu = [0, 0, 0, 0, 0, 0, 0]
+ycu = [0, 0, 0, 0, 0, 0, 0]
+xcp = 35
+ycp = 31
 
-sdist_i = [0.417, 0.723, 1.64, 5.3, 10.1, 19.8, 29.9]
-
-# create log scale of sizes of planets
-arb = 0.9
-pre = [1, 2.48, 2.61, 1.39, 28.66, 23.9, 10.4, 10.1]
-pre.insert(0, arb)
-scale = 3.5
-pre = [scale * math.log(x/pre[0],10) for x in pre]
-pre.pop(0)
-pre = [int(math.ceil(x)) for x in pre]
-
+menu = ['Planet Menu', 'Sky Chart', 'Sky Location', 'Orbital Data']
+# log scale of sizes of planets
+pre = [1, 2, 2, 1, 6, 5, 4, 4]
 # size of planets without earth
-pr = list.copy(pre)
-pr.pop(2)
+pr =  [1, 2, 1, 6, 5, 4, 4]
 
 # create log scale of distances of planets from sun
-arb = 0.2
-sdist_i = [0.466, 0.72, 1.02, 1.66, 5.29, 10, 19.8, 29.9]
-sdist_i.insert(0, arb)
-scale = 57
-sdist_i = [scale * math.log(x/sdist_i[0],10) - 1 for x in sdist_i]
-sdist_i.pop(0)
-sdist_i = [int(math.ceil(x)) for x in sdist_i]
-
-# distances of planets from sun without earth
-pxc = list.copy(sdist_i)
-pxc.pop(2)
-
+sdist_i = [20, 31, 40, 52, 81, 96, 113, 123]
+pxc = [20, 31, 52, 81, 96, 113, 123]
+rad_i = [5, 7, 10, 13, 20, 24, 28, 30]
 
 oled.fill(0)
 display1.fill(0)
@@ -154,7 +194,6 @@ display2.fill(0)
 oled.show()
 display1.show()
 display2.show()
-
 
 # define rotary variables
 r = RotaryIRQ(pin_num_clk=14,
@@ -166,6 +205,14 @@ r = RotaryIRQ(pin_num_clk=14,
 
 lastval = r.value()
 
+simple_cron.run()
+# orbitTracker_all needs to be cached 1/day
+simple_cron.add(
+    'Hourly',
+    lambda *a,**k: orbit_loc_all(),
+    minutes=range(0, 59, 2),
+    seconds=0
+)
 
 #define starfield screensaver variables
 stars = 500
@@ -219,8 +266,39 @@ while True:
         graphics.circle(sdist_i[7], 31, pre[7], 1)
         oled.show()
 
+        #Perihelion all orbits display
+        display1.text('P', 92, 0, 1)
+        letter = ['M', 'V', 'E', 'M', 'J', 'S', 'U', 'N']
+        let_dispy = [10, 20, 30, 40, 10, 20, 30, 40]
+        let_dispx = [75, 75, 75, 75, 110, 110, 110, 110]
+        #draw orbits
+        for index in range(len(names_e)):
+            graphics1.circle(xcp, ycp, rad_i[index], 1)
+            graphics1.circle(xcp + xp[index], ycp - yp[index], pre[index], 1)
+            graphics1.fill_circle(xcp + xp[index], ycp - yp[index], 1, 1)
+            display1.text(letter[index], let_dispx[index], let_dispy[index], 1)
+            display1.show()
+
+        #Sky location all planet display
+        display2.text('V', 92, 0, 1)
+        letter.pop(2)
+        let_dispx.pop(2)
+        let_dispy.pop(2)
+        rad = 29
+        #Visible on sky location display
+        for index in range(len(names)):
+            graphics2.circle(xcp, ycp, rad, 1)
+            if visible[index] == 'Yes':
+                graphics2.circle(xcu[index], ycu[index], 2, 1)
+                graphics2.fill_rect(let_dispx[index]-1, let_dispy[index]-1, 10, 10, 1)
+                display2.text(letter[index], let_dispx[index], let_dispy[index], 0)
+            else:
+                display2.text(letter[index], let_dispx[index], let_dispy[index], 1)
+            display2.show()
+
         while True:
             planetMenu()
+
 
             if not button.value():
                 print('Planet button pressed!')
@@ -249,6 +327,10 @@ while True:
                         if menufn == 'Planet Menu':
                             oled.fill(0)
                             oled.show()
+                            display1.fill(0)
+                            display2.fill(0)
+                            display1.show()
+                            display2.show()
                             r = RotaryIRQ(pin_num_clk=14,
                                     pin_num_dt=13,
                                     min_val=0,
@@ -288,27 +370,27 @@ while True:
                                     display2.show()
                                     break
 
-                        elif menufn == 'Orbit 3d':
-                            display2.fill(0)
-                            display2.show()
-                            n = 0
-                            while n >= 0:
-                                rad = 30
-                                xc = int(65 + 50 * math.sin(n))
-                                yc = int(33 + 20 * math.sin(n))
-                                f = int(121 + 120 * math.cos(n))
-                                xr = 0
-                                yr = int(n * 25)
-                                zr = 23
-                                sphere(rad, xc, yc, f, xr, yr, zr)
-                                n += 0.25
-                                val2 = r2.value()
-                                if lastval2 != val2:
-                                    display1.fill(0)
-                                    display2.fill(0)
-                                    display1.show()
-                                    display2.show()
-                                    break
+#                        elif menufn == 'Orbit 3d':
+#                            display2.fill(0)
+#                            display2.show()
+#                            n = 0
+#                            while n >= 0:
+#                                rad = 30
+#                                xc = int(65 + 50 * math.sin(n))
+#                                yc = int(33 + 20 * math.sin(n))
+#                                f = int(121 + 120 * math.cos(n))
+#                                xr = 0
+#                                yr = int(n * 25)
+#                                zr = 23
+#                                sphere(rad, xc, yc, f, xr, yr, zr)
+#                                n += 0.25
+#                                val2 = r2.value()
+#                                if lastval2 != val2:
+#                                    display1.fill(0)
+#                                    display2.fill(0)
+#                                    display1.show()
+#                                    display2.show()
+#                                    break
 
                     val2 = r2.value()
                     if lastval2 != val2:
