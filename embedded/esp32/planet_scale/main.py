@@ -116,6 +116,8 @@ def orbit_loc_all():
         xp[index] = int(rad_i[index] * math.cos(math.radians(long)))
         yp[index] = int(rad_i[index] * math.sin(math.radians(long)))
 
+        showOrbitLoc()
+
     for index, name in enumerate (names):
         # obtain planet above horizon from wolframalpha API
         url = "http://api.wolframalpha.com/v1/result?i={0}%20above%20horizon%3F&appid={1}".format(name, WOLFRAM_API_KEY)
@@ -163,7 +165,70 @@ def orbit_loc_all():
             y = int(round(rd * math.sin(math.radians(azc - 90)),0))
             xcu[index] = xcp + x
             ycu[index] = ycp + y
+        showOrbitLoc()
+    print(utime.localtime())
 
+
+def showOrbitLoc():
+    display1.fill(0)
+    display2.fill(0)
+    #Perihelion all orbits display
+    display1.text('P', 92, 0, 1)
+    letter = ['M', 'V', 'E', 'M', 'J', 'S', 'U', 'N']
+    let_dispy = [10, 20, 30, 40, 10, 20, 30, 40]
+    let_dispx = [75, 75, 75, 75, 110, 110, 110, 110]
+    #draw orbits
+    for index in range(len(names_e)):
+        graphics1.circle(xcp, ycp, rad_i[index], 1)
+        graphics1.circle(xcp + xp[index], ycp - yp[index], pre[index], 1)
+        graphics1.fill_circle(xcp + xp[index], ycp - yp[index], 1, 1)
+        display1.text(letter[index], let_dispx[index], let_dispy[index], 1)
+        display1.show()
+
+    #Sky location all planet display
+    display2.text('V', 92, 0, 1)
+    letter.pop(2)
+    let_dispx.pop(2)
+    let_dispy.pop(2)
+    rad = 29
+    #Visible on sky location display
+    for index in range(len(names)):
+        graphics2.circle(xcp, ycp, rad, 1)
+        if visible[index] == 'Yes':
+            graphics2.circle(xcu[index], ycu[index], 2, 1)
+            graphics2.fill_rect(let_dispx[index]-1, let_dispy[index]-1, 10, 10, 1)
+            display2.text(letter[index], let_dispx[index], let_dispy[index], 0)
+        else:
+            display2.text(letter[index], let_dispx[index], let_dispy[index], 1)
+        display2.show()
+
+def showplanetMenu():
+    # make huge sun
+    oled.vline(0, 0, 64, 1)
+    oled.vline(1, 0, 64, 1)
+    oled.vline(2, 0, 64, 1)
+    oled.vline(3, 0, 64, 1)
+    oled.vline(4, 0, 64, 1)
+    oled.vline(5, 0, 64, 1)
+    oled.vline(6, 0, 64, 1)
+    oled.vline(7, 0, 64, 1)
+    oled.vline(8, 3, 58, 1)
+    oled.vline(9, 16, 33, 1)
+    oled.vline(10, 23, 19, 1)
+
+    # show planet index graphic
+    graphics.circle(sdist_i[0], 31, pre[0], 1)
+    oled.line(pxc[0]-pr[0], 41, pxc[0]+pr[0], 41, 1)
+    oled.text(names[0], 16, 0, 1)
+    graphics.circle(sdist_i[1], 31, pre[1], 1)
+    graphics.fill_circle(sdist_i[2], 31, pre[2], 1)
+    graphics.circle(sdist_i[3], 31, pre[3], 1)
+    graphics.circle(sdist_i[4], 31, pre[4], 1)
+    graphics.circle(sdist_i[5], 31, pre[5], 1)
+    oled.line(sdist_i[5] - pre[5], 37, sdist_i[5] + pre[5], 25, 1)
+    graphics.circle(sdist_i[6], 31, pre[6], 1)
+    graphics.circle(sdist_i[7], 31, pre[7], 1)
+    oled.show()
 
 #define planet menu parameters
 names = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
@@ -210,7 +275,7 @@ simple_cron.run()
 simple_cron.add(
     'Hourly',
     lambda *a,**k: orbit_loc_all(),
-    minutes=range(0, 59, 2),
+    minutes=0,
     seconds=0
 )
 
@@ -238,67 +303,18 @@ while True:
         display1.show()
         display2.show()
         utime.sleep_ms(250)
+        showplanetMenu()
+        showOrbitLoc()
+        #run orbit loc on bootup
+        orbit_loc_all()
 
-        # make huge sun
-        oled.vline(0, 0, 64, 1)
-        oled.vline(1, 0, 64, 1)
-        oled.vline(2, 0, 64, 1)
-        oled.vline(3, 0, 64, 1)
-        oled.vline(4, 0, 64, 1)
-        oled.vline(5, 0, 64, 1)
-        oled.vline(6, 0, 64, 1)
-        oled.vline(7, 0, 64, 1)
-        oled.vline(8, 3, 58, 1)
-        oled.vline(9, 16, 33, 1)
-        oled.vline(10, 23, 19, 1)
-
-        # show planet index graphic
-        graphics.circle(sdist_i[0], 31, pre[0], 1)
-        oled.line(pxc[0]-pr[0], 41, pxc[0]+pr[0], 41, 1)
-        oled.text(names[0], 16, 0, 1)
-        graphics.circle(sdist_i[1], 31, pre[1], 1)
-        graphics.fill_circle(sdist_i[2], 31, pre[2], 1)
-        graphics.circle(sdist_i[3], 31, pre[3], 1)
-        graphics.circle(sdist_i[4], 31, pre[4], 1)
-        graphics.circle(sdist_i[5], 31, pre[5], 1)
-        oled.line(sdist_i[5] - pre[5], 37, sdist_i[5] + pre[5], 25, 1)
-        graphics.circle(sdist_i[6], 31, pre[6], 1)
-        graphics.circle(sdist_i[7], 31, pre[7], 1)
-        oled.show()
-
-        #Perihelion all orbits display
-        display1.text('P', 92, 0, 1)
-        letter = ['M', 'V', 'E', 'M', 'J', 'S', 'U', 'N']
-        let_dispy = [10, 20, 30, 40, 10, 20, 30, 40]
-        let_dispx = [75, 75, 75, 75, 110, 110, 110, 110]
-        #draw orbits
-        for index in range(len(names_e)):
-            graphics1.circle(xcp, ycp, rad_i[index], 1)
-            graphics1.circle(xcp + xp[index], ycp - yp[index], pre[index], 1)
-            graphics1.fill_circle(xcp + xp[index], ycp - yp[index], 1, 1)
-            display1.text(letter[index], let_dispx[index], let_dispy[index], 1)
-            display1.show()
-
-        #Sky location all planet display
-        display2.text('V', 92, 0, 1)
-        letter.pop(2)
-        let_dispx.pop(2)
-        let_dispy.pop(2)
-        rad = 29
-        #Visible on sky location display
-        for index in range(len(names)):
-            graphics2.circle(xcp, ycp, rad, 1)
-            if visible[index] == 'Yes':
-                graphics2.circle(xcu[index], ycu[index], 2, 1)
-                graphics2.fill_rect(let_dispx[index]-1, let_dispy[index]-1, 10, 10, 1)
-                display2.text(letter[index], let_dispx[index], let_dispy[index], 0)
-            else:
-                display2.text(letter[index], let_dispx[index], let_dispy[index], 1)
-            display2.show()
-
+        has_run = 0
         while True:
             planetMenu()
-
+            if has_run == 0:
+                showOrbitLoc()
+                showplanetMenu()
+                has_run +=1
 
             if not button.value():
                 print('Planet button pressed!')
@@ -338,6 +354,7 @@ while True:
                                     reverse=True,
                                     range_mode=RotaryIRQ.RANGE_WRAP)
                             lastval = r.value()
+                            has_run -=1
                             break
 
                         elif menufn == 'Sky Chart':
@@ -348,6 +365,7 @@ while True:
                                     display2.fill(0)
                                     display1.show()
                                     display2.show()
+                                    has_run -=1
                                     break
 
                         elif menufn == 'Sky Location':
@@ -358,6 +376,7 @@ while True:
                                     display2.fill(0)
                                     display1.show()
                                     display2.show()
+                                    has_run -=1
                                     break
 
                         elif menufn == 'Orbital Data':
@@ -368,29 +387,8 @@ while True:
                                     display2.fill(0)
                                     display1.show()
                                     display2.show()
+                                    has_run -=1
                                     break
-
-#                        elif menufn == 'Orbit 3d':
-#                            display2.fill(0)
-#                            display2.show()
-#                            n = 0
-#                            while n >= 0:
-#                                rad = 30
-#                                xc = int(65 + 50 * math.sin(n))
-#                                yc = int(33 + 20 * math.sin(n))
-#                                f = int(121 + 120 * math.cos(n))
-#                                xr = 0
-#                                yr = int(n * 25)
-#                                zr = 23
-#                                sphere(rad, xc, yc, f, xr, yr, zr)
-#                                n += 0.25
-#                                val2 = r2.value()
-#                                if lastval2 != val2:
-#                                    display1.fill(0)
-#                                    display2.fill(0)
-#                                    display1.show()
-#                                    display2.show()
-#                                    break
 
                     val2 = r2.value()
                     if lastval2 != val2:
