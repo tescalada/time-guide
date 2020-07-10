@@ -6,6 +6,8 @@ import gfx
 import utime
 import math
 
+# hi ben and babak
+
 from machine import I2C, Pin, SPI
 
 oled_reset_pin = Pin(16, Pin.OUT)
