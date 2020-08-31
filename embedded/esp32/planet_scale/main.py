@@ -273,8 +273,9 @@ lastval = r.value()
 simple_cron.run()
 # orbitTracker_all needs to be cached 1/day
 simple_cron.add(
-    'Hourly',
+    'Daily',
     lambda *a,**k: orbit_loc_all(),
+    hours=12,
     minutes=0,
     seconds=0
 )
