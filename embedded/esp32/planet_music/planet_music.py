@@ -133,6 +133,7 @@ for i in range(len(rise)):
         else:
             notelist_ne[i * 24 + j] = notelist_ne[i * 24 + j]
 
+
 mixer = Mixer(44100, 0.5)
 mixer.create_track(0, SINE_WAVE)
 mixer.create_track(1, SINE_WAVE)
