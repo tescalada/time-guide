@@ -60,15 +60,15 @@ for i in range(len(rise)):
 dur = 0.5
 
 # note list for each body
-bnotes = [('d', 3, dur, 0, 0, 0.1, 0.3),
-         ('g', 3, dur, 0, 0, 0.1, 0.3),
-         ('c', 4, dur, 0, 0, 0.1, 0.3),
-         ('e', 4, dur, 0, 0, 0.1, 0.3),
+bnotes = [('d', 4, dur, 0, 0, 0.1, 0.3),
          ('g', 4, dur, 0, 0, 0.1, 0.3),
-         ('f#', 3, dur, 0, 0, 0.1, 0.3),
-         ('a', 3, dur, 0, 0, 0.1, 0.3),
+         ('c', 5, dur, 0, 0, 0.1, 0.3),
+         ('e', 5, dur, 0, 0, 0.1, 0.3),
+         ('g', 5, dur, 0, 0, 0.1, 0.3),
+         ('f#', 4, dur, 0, 0, 0.1, 0.3),
          ('a', 4, dur, 0, 0, 0.1, 0.3),
-         ('d', 4, dur, 0, 0, 0.1, 0.3)
+         ('a', 5, dur, 0, 0, 0.1, 0.3),
+         ('d', 5, dur, 0, 0, 0.1, 0.3)
          ]
 
 silence = (0, 0)
@@ -144,15 +144,15 @@ mixer.create_track(6, SINE_WAVE)
 mixer.create_track(7, SINE_WAVE)
 mixer.create_track(8, SINE_WAVE)
 
-mixer.add_notes(0, notelist_sun[0:120])
-mixer.add_notes(1, notelist_moon[0:120])
-mixer.add_notes(2, notelist_me[0:120])
-mixer.add_notes(3, notelist_ve[0:120])
-mixer.add_notes(4, notelist_ma[0:120])
-mixer.add_notes(5, notelist_ju[0:120])
-mixer.add_notes(6, notelist_sa[0:120])
-mixer.add_notes(7, notelist_ur[0:120])
-mixer.add_notes(8, notelist_ne[0:120])
+mixer.add_notes(0, notelist_sun)
+mixer.add_notes(1, notelist_moon)
+mixer.add_notes(2, notelist_me)
+mixer.add_notes(3, notelist_ve)
+mixer.add_notes(4, notelist_ma)
+mixer.add_notes(5, notelist_ju)
+mixer.add_notes(6, notelist_sa)
+mixer.add_notes(7, notelist_ur)
+mixer.add_notes(8, notelist_ne)
 
 mixer.write_wav('planet_music.wav')
 samples = mixer.mix()
