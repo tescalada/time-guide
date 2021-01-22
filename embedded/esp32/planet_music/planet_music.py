@@ -55,6 +55,18 @@ for i in range(len(rise)):
         rise[i][j] = int(datetime.strftime(rise[i][j], "%H"))
         sett[i][j] = int(datetime.strftime(sett[i][j], "%H"))
 
+# write csv files with rise/set hours
+file = open('rise.csv', 'w+', newline ='')
+with file:
+    write = csv.writer(file)
+    write.writerows(rise)
+
+file = open('sett.csv', 'w+', newline ='')
+with file:
+    write = csv.writer(file)
+    write.writerows(sett)
+
+
 ## convert rise/set hours into notelists for mixer
 # note duration
 dur = 0.5
