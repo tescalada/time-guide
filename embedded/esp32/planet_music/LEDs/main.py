@@ -21,7 +21,6 @@ def do_connect():
     if not wlan.isconnected():
         wlan.connect(WIFI_SSID, WIFI_PASSWORD)
         while not wlan.isconnected():
-#            wdt.feed()
             pass
     print('network config:', wlan.ifconfig())
 
@@ -32,6 +31,7 @@ time.sleep(1)
 
 def planet_timestamp(name, action):
     url = "http://api.wolframalpha.com/v2/result?i={0}%20{1}%20next%20unix%20time%3F&appid={2}".format(name, action, WOLFRAM_API_KEY)
+    print(url)
     r = requests.get(url)
     print(r.text)
     timestamp = r.text
@@ -42,6 +42,8 @@ def planet_timestamp(name, action):
     return timestamp
 
 def make_planet_list():
+    rise = []
+    sett = []
     for i, name in enumerate(names) :
         # obtain rise time from wolframalpha API
         rise[i][0] = planet_timestamp(name, 'rise')
@@ -76,7 +78,21 @@ LED = [(255, 255, 0, 128),
        (70, 35, 206, 0)]
 
 # set the RTC
-settime()
+def set_time_with_retry(retries):
+    while True:
+        if retries == 0:
+            return
+        try:
+            settime()
+            print('try')
+        except:
+            retries -= 1
+            time.sleep(5)
+            print('retries remaining: {}'.format(retries))
+        else:
+            return
+
+set_time_with_retry(1)
 
 # simple_cron.run()
 # # set the time once every hour
@@ -89,10 +105,10 @@ settime()
 
 time.sleep(1)
 
-planet_list = make_planet_list()
+planet_list_x = make_planet_list()
 
 while True:
-    timestamp, planetname, action = planet_list.pop(0)
+    timestamp, planetname, action = planet_list_x.pop(0)
     # sleep until timestamp
     now = int(time.time()) # return time since the Epoch (embedded)
     print(now)
@@ -109,5 +125,5 @@ while True:
         next_timestamp = planet_timestamp(planetname, 'set')
         next_tuple = (next_timestamp, planetname, 'sett')
 
-    planet_list.append(next_tuple)
-    list.sort(planet_list)
+    planet_list_x.append(next_tuple)
+    list.sort(planet_list_x)
