@@ -111,3 +111,31 @@ for timestamp, planetname, action in planet_list:
         np[1] = LED[1]
     if planetname == "Moon" and action == "sett":
        np[1] = (0, 0, 0, 0)
+    if planetname == "Mercury" and action == "rise":
+        np[2] = LED[2]
+    if planetname == "Mercury" and action == "sett":
+        np[2] = (0, 0, 0, 0)
+    if planetname == "Venus" and action == "rise":
+        np[3] = LED[3]
+    if planetname == "Venus" and action == "sett":
+        np[3] = (0, 0, 0, 0)
+    if planetname == "Mars" and action == "rise":
+        np[4] = LED[4]
+    if planetname == "Mars" and action == "sett":
+        np[4] = (0, 0, 0, 0)
+    if planetname == "Jupiter" and action == "rise":
+        np[5] = LED[5]
+    if planetname == "Jupiter" and action == "sett":
+        np[5] = (0, 0, 0, 0)
+    if planetname == "Saturn" and action == "rise":
+        np[6] = LED[6]
+    if planetname == "Saturn" and action == "sett":
+        np[6] = (0, 0, 0, 0)
+    if planetname == "Uranus" and action == "rise":
+        np[7] = LED[7]
+    if planetname == "Uranus" and action == "sett":
+        np[7] = (0, 0, 0, 0)
+    if planetname == "Neptune" and action == "rise":
+        np[8] = LED[8]
+    if planetname == "Neptune" and action == "sett":
+        np[8] = (0, 0, 0, 0)
