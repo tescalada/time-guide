@@ -28,31 +28,28 @@ gc.collect()
 
 time.sleep(1)
 
+def planet_timestamp(name, action):
+    url = "http://api.wolframalpha.com/v2/result?i={0}%20{1}%20next%20unix%20time%3F&appid={2}".format(name, action, WOLFRAM_API_KEY)
+    r = requests.get(url)
+    print(r.text)
+    timestamp = r.text
+    timestamp = [x.strip() for x in timestamp.split(' ')]
+    timestamp = int(timestamp[0]) - 946080000 #convert to embedded Epoch
+    r.close()
+    del r
+    return timestamp
+
 def make_planet_list():
-    for i, name in enumerate (names) :
+    for i, name in enumerate(names) :
         # obtain rise time from wolframalpha API
-        url = "http://api.wolframalpha.com/v2/result?i={0}%20rise%20next%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        rise[i][0] = r.text
-        rise[i][0] = [x.strip() for x in rise[i][1].split(' ')]
-        rise[i][0] = int(rise[i][0][0]) - 946080000 #convert to embedded Epoch
-        r.close()
-        del r
+        rise[i][0] = planet_timestamp(name, 'rise')
         rise[i][1] = name
-        rise [i][2] = 'rise'
+        rise[i][2] = 'rise'
 
         # obtain set time from wolframalpha API
-        url = "http://api.wolframalpha.com/v2/result?i={0}%20set%20next%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
-        r = requests.get(url)
-        print(r.text)
-        sett[i][0] = r.text
-        sett[i][0] = [x.strip() for x in sett[i][1].split(' ')]
-        sett[i][0] = int(sett[i][0][0]) - 946080000 #convert to embedded Epoch
-        r.close()
-        del r
+        sett[i][0] = planet_timestamp(name, 'set')
         sett[i][1] = name
-        sett [i][2] = 'sett'
+        sett[i][2] = 'sett'
 
     rise = [tuple(l) for l in rise]
     sett = [tuple(l) for l in sett]
@@ -61,11 +58,21 @@ def make_planet_list():
     return planet_list
 
 # define variables
-names = ['Sun', 'Moon']
-# 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'
+names = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+planet_number_map = {
+            "Sun": 0,
+            "Moon": 1,
+            "Mercury": 2,
+            "Venus": 3,
+            "Mars": 4,
+            "Jupiter": 5,
+            "Saturn": 6,
+            "Uranus": 7,
+            "Neptune": 8,
+        }
 rise = [[0 for i in range(3)] for j in range(len(names))]
 sett = [[0 for i in range(3)] for j in range(len(names))]
-# note list for each body
+# LED list for each body
 LED = [(255, 255, 0, 128),
        (50, 50, 50, 64),
        (212, 102, 102, 0),
@@ -89,52 +96,27 @@ simple_cron.add(
     seconds=0
 )
 
-# return time since the Epoch (embedded)
-
 time.sleep(1)
 
 planet_list = make_planet_list()
 
-for timestamp, planetname, action in planet_list:
+while True:
+    timestamp, planetname, action = planet_list.pop(0)
     # sleep until timestamp
-    now = int(time.time())
+    now = int(time.time()) # return time since the Epoch (embedded)
     print(now)
     time.sleep(timestamp - now)
 
-    if planetname == "Sun" and action == "rise":
-        np[0] = LED[0]
+    planet_num = planet_number_map[planetname]
+    if action == "rise":
+        np[planet_num] = LED[planet_num]
 
-    if planetname == "Sun" and action == "sett":
-        np[0] = (0, 0, 0, 0)
-    if planetname == "Moon" and action == "rise":
-        np[1] = LED[1]
-    if planetname == "Moon" and action == "sett":
-        np[1] = (0, 0, 0, 0)
-    if planetname == "Mercury" and action == "rise":
-        np[2] = LED[2]
-    if planetname == "Mercury" and action == "sett":
-        np[2] = (0, 0, 0, 0)
-    if planetname == "Venus" and action == "rise":
-        np[3] = LED[3]
-    if planetname == "Venus" and action == "sett":
-        np[3] = (0, 0, 0, 0)
-    if planetname == "Mars" and action == "rise":
-        np[4] = LED[4]
-    if planetname == "Mars" and action == "sett":
-        np[4] = (0, 0, 0, 0)
-    if planetname == "Jupiter" and action == "rise":
-        np[5] = LED[5]
-    if planetname == "Jupiter" and action == "sett":
-        np[5] = (0, 0, 0, 0)
-    if planetname == "Saturn" and action == "rise":
-        np[6] = LED[6]
-    if planetname == "Saturn" and action == "sett":
-        np[6] = (0, 0, 0, 0)
-    if planetname == "Uranus" and action == "rise":
-        np[7] = LED[7]
-    if planetname == "Uranus" and action == "sett":
-        np[7] = (0, 0, 0, 0)
-    if planetname == "Neptune" and action == "rise":
-        np[8] = LED[8]
-    if planetname == "Neptune" and action == "sett":
-        np[8] = (0, 0, 0, 0)
+    elif action == "sett":
+        np[planet_num] = (0, 0, 0, 0)
+
+
+
+    planet_list.append(new_tuple)
+    list.sort(planet_list)
+
+
