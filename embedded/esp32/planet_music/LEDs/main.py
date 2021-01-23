@@ -85,7 +85,6 @@ simple_cron.run()
 simple_cron.add(
     'Hourly',
     lambda *a,**k: settime(),
-    hours=0,
     minutes=0,
     seconds=0
 )
