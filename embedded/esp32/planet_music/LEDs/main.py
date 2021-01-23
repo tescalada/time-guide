@@ -110,13 +110,13 @@ while True:
     planet_num = planet_number_map[planetname]
     if action == "rise":
         np[planet_num] = LED[planet_num]
+        next_timestamp = planet_timestamp(planetname, 'rise')
+        next_tuple = (next_timestamp, planetname, 'rise')
 
     elif action == "sett":
         np[planet_num] = (0, 0, 0, 0)
+        next_timestamp = planet_timestamp(planetname, 'set')
+        next_tuple = (next_timestamp, planetname, 'sett')
 
-
-
-    planet_list.append(new_tuple)
+    planet_list.append(next_tuple)
     list.sort(planet_list)
-
-
