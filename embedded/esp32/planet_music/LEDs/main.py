@@ -51,7 +51,11 @@ def make_planet_list():
         sett[i][2] = name
         sett [i][3] = 'sett'
 
-    planet_list = rise.append(sett)
+
+    rise = [tuple(l) for l in rise]
+    sett = [tuple(l) for l in sett]
+    planet_list = rise + sett
+    list.sort(planet_list)
 
 # define variables
 names = ['Sun', 'Moon']
@@ -79,7 +83,7 @@ time.sleep(1)
 
 make_planet_list()
 
-planet_list
+
 
 sorted_planet_time_list = [(12345, "mars", "rise")]
 for timestamp, planetname, action in sorted_planet_time_list:
