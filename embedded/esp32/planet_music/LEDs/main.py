@@ -1,12 +1,17 @@
 import gc
 
-
+import machine, neopixel
 import network
 import utime as time
 import urequests as requests
 from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
 from ntptime import settime
 from scron.week import simple_cron
+
+#initialize neopixel
+n = 9
+p = 13
+np = neopixel.NeoPixel(machine.Pin(p), n, bpp=4)
 
 def do_connect():
     wlan = network.WLAN(network.STA_IF)
@@ -29,39 +34,49 @@ def make_planet_list():
         url = "http://api.wolframalpha.com/v2/result?i={0}%20rise%20today%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
-        rise[i][1] = r.text
-        rise[i][1] = [x.strip() for x in rise[i][1].split(' ')]
-        rise[i][1] = int(rise[i][1][0]) - 946080000 #convert to embedded Epoch
+        rise[i][0] = r.text
+        rise[i][0] = [x.strip() for x in rise[i][1].split(' ')]
+        rise[i][0] = int(rise[i][0][0]) - 946080000 #convert to embedded Epoch
         r.close()
         del r
-        rise[i][0] = rise[i][1] - now #seconds from "now" until event
-        rise[i][2] = name
-        rise [i][3] = 'rise'
+        rise[i][1] = name
+        rise [i][2] = 'rise'
 
         # obtain set time from wolframalpha API
         url = "http://api.wolframalpha.com/v2/result?i={0}%20set%20today%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
-        sett[i][1] = r.text
-        sett[i][1] = [x.strip() for x in sett[i][1].split(' ')]
-        sett[i][1] = int(sett[i][1][0]) - 946080000 #convert to embedded Epoch
+        sett[i][0] = r.text
+        sett[i][0] = [x.strip() for x in sett[i][1].split(' ')]
+        sett[i][0] = int(sett[i][0][0]) - 946080000 #convert to embedded Epoch
         r.close()
         del r
-        sett[i][0] = sett[i][1] - now #seconds from "now" until event
-        sett[i][2] = name
-        sett [i][3] = 'sett'
+        sett[i][1] = name
+        sett [i][2] = 'sett'
 
 
     rise = [tuple(l) for l in rise]
     sett = [tuple(l) for l in sett]
     planet_list = rise + sett
     list.sort(planet_list)
+    return planet_list
 
 # define variables
 names = ['Sun', 'Moon']
 # 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'
-rise = [[0 for i in range(4)] for j in range(len(names))]
-sett = [[0 for i in range(4)] for j in range(len(names))]
+rise = [[0 for i in range(3)] for j in range(len(names))]
+sett = [[0 for i in range(3)] for j in range(len(names))]
+# note list for each body
+LED = [(255, 255, 0, 128),
+       (50, 50, 50, 64),
+       (212, 102, 102, 0),
+       (241, 232, 184, 0),
+       (46, 118, 255, 0),
+       (255, 0, 0, 0),
+       (250, 149, 0, 0),
+       (255, 218, 198, 0),
+       (54, 65, 86, 0),
+       (70, 35, 206, 0)]
 
 # set the RTC
 settime()
@@ -77,16 +92,22 @@ simple_cron.add(
 )
 
 # return time since the Epoch (embedded)
-now = int(time.time())
-print(now)
+
 time.sleep(1)
 
-make_planet_list()
+planet_list = make_planet_list()
 
-
-
-sorted_planet_time_list = [(12345, "mars", "rise")]
-for timestamp, planetname, action in sorted_planet_time_list:
+for timestamp, planetname, action in planet_list:
     # sleep until timestamp
-    if planetname == "mars" and action == "rise":
-        #whatever
+    now = int(time.time())
+    print(now)
+    time.sleep(timestamp - now)
+
+    if planetname == "Sun" and action == "rise":
+        np[0] = LED[0]
+    if planetname == "Sun" and action == "sett":
+        np[0] = (0, 0, 0, 0)
+    if planetname == "Moon" and action == "rise":
+        np[1] = LED[1]
+    if planetname == "Moon" and action == "sett":
+       np[1] = (0, 0, 0, 0)
