@@ -31,7 +31,7 @@ time.sleep(1)
 def make_planet_list():
     for i, name in enumerate (names) :
         # obtain rise time from wolframalpha API
-        url = "http://api.wolframalpha.com/v2/result?i={0}%20rise%20today%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        url = "http://api.wolframalpha.com/v2/result?i={0}%20rise%20next%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         rise[i][0] = r.text
@@ -43,7 +43,7 @@ def make_planet_list():
         rise [i][2] = 'rise'
 
         # obtain set time from wolframalpha API
-        url = "http://api.wolframalpha.com/v2/result?i={0}%20set%20today%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
+        url = "http://api.wolframalpha.com/v2/result?i={0}%20set%20next%20unix%20time%3F&appid={1}".format(name, WOLFRAM_API_KEY)
         r = requests.get(url)
         print(r.text)
         sett[i][0] = r.text
@@ -53,7 +53,6 @@ def make_planet_list():
         del r
         sett[i][1] = name
         sett [i][2] = 'sett'
-
 
     rise = [tuple(l) for l in rise]
     sett = [tuple(l) for l in sett]
@@ -105,12 +104,13 @@ for timestamp, planetname, action in planet_list:
 
     if planetname == "Sun" and action == "rise":
         np[0] = LED[0]
+
     if planetname == "Sun" and action == "sett":
         np[0] = (0, 0, 0, 0)
     if planetname == "Moon" and action == "rise":
         np[1] = LED[1]
     if planetname == "Moon" and action == "sett":
-       np[1] = (0, 0, 0, 0)
+        np[1] = (0, 0, 0, 0)
     if planetname == "Mercury" and action == "rise":
         np[2] = LED[2]
     if planetname == "Mercury" and action == "sett":
