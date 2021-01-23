@@ -6,7 +6,9 @@ import utime as time
 import urequests as requests
 from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
 from ntptime import settime
-from scron.week import simple_cron
+# from scron.week import simple_cron
+
+time.sleep(1)
 
 #initialize neopixel
 n = 9
@@ -59,17 +61,6 @@ def make_planet_list():
 
 # define variables
 names = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
-planet_number_map = {
-            "Sun": 0,
-            "Moon": 1,
-            "Mercury": 2,
-            "Venus": 3,
-            "Mars": 4,
-            "Jupiter": 5,
-            "Saturn": 6,
-            "Uranus": 7,
-            "Neptune": 8,
-        }
 rise = [[0 for i in range(3)] for j in range(len(names))]
 sett = [[0 for i in range(3)] for j in range(len(names))]
 # LED list for each body
@@ -87,14 +78,14 @@ LED = [(255, 255, 0, 128),
 # set the RTC
 settime()
 
-simple_cron.run()
-# set the time once every hour
-simple_cron.add(
-    'Hourly',
-    lambda *a,**k: settime(),
-    minutes=0,
-    seconds=0
-)
+# simple_cron.run()
+# # set the time once every hour
+# simple_cron.add(
+#     'Hourly',
+#     lambda *a,**k: settime(),
+#     minutes=0,
+#     seconds=0
+# )
 
 time.sleep(1)
 
@@ -107,7 +98,7 @@ while True:
     print(now)
     time.sleep(timestamp - now)
 
-    planet_num = planet_number_map[planetname]
+    planet_num = names.index(planetname)
     if action == "rise":
         np[planet_num] = LED[planet_num]
         next_timestamp = planet_timestamp(planetname, 'rise')
