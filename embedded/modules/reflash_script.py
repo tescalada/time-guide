@@ -4,9 +4,12 @@ esptool.py --port /dev/tty.usbserial-0001 erase_flash
 esptool.py --port /dev/tty.usbserial-0001 --baud 460800 write_flash --flash_size=detect 0 esp8266-20190529-v1.11.bin
 
 # for esp32 board
-wget http://micropython.org/resources/firmware/esp32-20190529-v1.11.bin
+wget https://micropython.org/resources/firmware/esp32-idf3-20200902-v1.13.bin
+
 esptool.py --chip esp32 --port /dev/tty.usbserial-0001 erase_flash
 esptool.py --chip esp32 --port /dev/tty.usbserial-0001 --baud 460800 write_flash -z 0x1000 esp32-20190529-v1.11.bin
+esptool.py --chip esp32 --port /dev/tty.usbserial-0001 --baud 460800 write_flash -z 0x1000 esp32-idf3-20200902-v1.13.bin
+
 
 # put modules
 cd Documents/GitHub/time-guide/embedded/modules
@@ -36,3 +39,5 @@ screen /dev/tty.usbserial-0001 115200
 # check ports
 ls /dev/tty.*
 
+# run scron on board
+micropython -m upip install -p modules micropython-scron
