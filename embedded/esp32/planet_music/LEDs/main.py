@@ -152,6 +152,20 @@ time.sleep(1)
 planet_list = make_planet_list()
 
 for i in range(len(names)):
+    #clear LEDs at boot
+    np[i * 9] = (0, 0, 0, 0)
+    np[i * 9 + 1] = (0, 0, 0, 0)
+    np[i * 9 + 2] = (0, 0, 0, 0)
+    np[i * 9 + 3] = (0, 0, 0, 0)
+    np[i * 9 + 4] = (0, 0, 0, 0)
+    np[i * 9 + 5] = (0, 0, 0, 0)
+    np[i * 9 + 6] = (0, 0, 0, 0)
+    np[i * 9 + 7] = (0, 0, 0, 0)
+    np[i * 9 + 8] = (0, 0, 0, 0)
+    np.write()
+    time.sleep(0.5)
+
+    #turn on LEDs for planets already above horizon
     if planet_list[i][0] > planet_list[i + 9][0]:
         np[i * 9] = LED[0]
         np[i * 9 + 1] = LED[1]
@@ -175,18 +189,24 @@ while True:
     timestamp_local_str = " ".join(map(str, timestamp_local))
     print(timestamp_local_str)
 
-    oled.fill(0)
-    oled.text('next:',0,0,1)
-    oled.text(planetname,35,0,1)
-    oled.text(action,95,0,1)
-    oled.text(timestamp_local_str,0,10,1)
-    oled.text('last now:',0,20,1)
-    oled.text(now_local_str,0,30,1)
-    oled.text(str(timestamp - now),0,40,1)
-    oled.show()
+    delay = timestamp - now
 
-    # sleep until timestamp
-    time.sleep(timestamp - now)
+    if delay > 0:
+
+        oled.fill(0)
+        oled.text('next',0,0,1)
+        oled.text(planetname,35,0,1)
+        oled.text(action,95,0,1)
+        oled.text(timestamp_local_str,0,10,1)
+        oled.text('last now:',0,20,1)
+        oled.text(now_local_str,0,30,1)
+        oled.text('sleep:',0,40,1)
+        oled.text(str(delay),0,50,1)
+        oled.text('secs',95,50,1)
+        oled.show()
+
+        # sleep until timestamp
+        time.sleep(delay)
 
     planet_num = names.index(planetname)
     if action == "rise":
