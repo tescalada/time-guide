@@ -89,7 +89,6 @@ def make_planet_list():
     rise = [tuple(l) for l in rise]
     sett = [tuple(l) for l in sett]
     planet_list = rise + sett
-    list.sort(planet_list)
     return planet_list
 
 
@@ -152,6 +151,23 @@ time.sleep(1)
 
 planet_list = make_planet_list()
 
+for i in range(len(names)):
+    if planet_list[i][0] > planet_list[i + 9][0]:
+        np[i * 9] = LED[0]
+        np[i * 9 + 1] = LED[1]
+        np[i * 9 + 2] = LED[2]
+        np[i * 9 + 3] = LED[3]
+        np[i * 9 + 4] = LED[4]
+        np[i * 9 + 5] = LED[5]
+        np[i * 9 + 6] = LED[6]
+        np[i * 9 + 7] = LED[7]
+        np[i * 9 + 8] = LED[8]
+        np.write()
+        print(planet_list[i][1])
+        print('above horizon')
+
+list.sort(planet_list)
+
 while True:
     timestamp, planetname, action = planet_list.pop(0)
     print(timestamp)
@@ -174,15 +190,15 @@ while True:
 
     planet_num = names.index(planetname)
     if action == "rise":
-        np[planet_num * 9] = LED[planet_num]
-        np[planet_num * 9 + 1] = LED[planet_num]
-        np[planet_num * 9 + 2] = LED[planet_num]
-        np[planet_num * 9 + 3] = LED[planet_num]
-        np[planet_num * 9 + 4] = LED[planet_num]
-        np[planet_num * 9 + 5] = LED[planet_num]
-        np[planet_num * 9 + 6] = LED[planet_num]
-        np[planet_num * 9 + 7] = LED[planet_num]
-        np[planet_num * 9 + 8] = LED[planet_num]
+        np[planet_num * 9] = LED[0]
+        np[planet_num * 9 + 1] = LED[1]
+        np[planet_num * 9 + 2] = LED[2]
+        np[planet_num * 9 + 3] = LED[3]
+        np[planet_num * 9 + 4] = LED[4]
+        np[planet_num * 9 + 5] = LED[5]
+        np[planet_num * 9 + 6] = LED[6]
+        np[planet_num * 9 + 7] = LED[7]
+        np[planet_num * 9 + 8] = LED[8]
         np.write()
         print(planetname)
         print('rise')
