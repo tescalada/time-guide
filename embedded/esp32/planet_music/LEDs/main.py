@@ -11,6 +11,7 @@ from credentials import WIFI_SSID, WIFI_PASSWORD, WOLFRAM_API_KEY
 from ntptime import settime
 # from scron.week import simple_cron
 import ubinascii
+
 mac = ubinascii.hexlify(network.WLAN().config('mac'),':').decode()
 print(mac)
 
@@ -20,23 +21,27 @@ time.sleep(1)
 oled_reset_pin = Pin(16, Pin.OUT)
 oled_reset_pin.value(1)
 time.sleep(1)
-i2c = I2C(scl=Pin(15), sda=Pin(4))
+oled_i2c = I2C(scl=Pin(15), sda=Pin(4))
 time.sleep(1)
-oled = ssd1306.SSD1306_I2C(128, 64, i2c)
+oled = ssd1306.SSD1306_I2C(128, 64, oled_i2c)
 time.sleep(1)
 graphics = gfx.GFX(128, 64, oled.pixel)
 time.sleep(1)
 
+# define variables
+names = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
 
 #initialize neopixel
-n = 9
+n = 81
 p = 13
 np = neopixel.NeoPixel(machine.Pin(p), n, bpp=4)
 
 def do_connect():
     wlan = network.WLAN(network.STA_IF)
+    # wlan.config(dhcp_hostname = 'planet_chimes')
     wlan.active(True)
     if not wlan.isconnected():
+        wlan.config(dhcp_hostname="esp32-planet-chimes")
         wlan.connect(WIFI_SSID, WIFI_PASSWORD)
         while not wlan.isconnected():
             pass
@@ -49,7 +54,6 @@ oled.fill(0)
 oled.text('wifi connected',0,0,1)
 oled.show()
 time.sleep(1)
-
 
 def planet_timestamp(name, action):
     url = "http://api.wolframalpha.com/v1/result?i={0}%20{1}%20next%20unix%20time%3F&appid={2}".format(name, action, WOLFRAM_API_KEY)
@@ -77,26 +81,28 @@ def make_planet_list():
         sett[i][1] = name
         sett[i][2] = 'sett'
 
+        oled.fill(0)
+        oled.text('acquired:',0,0,1)
+        oled.text(name,0,16,1)
+        oled.show()
+
     rise = [tuple(l) for l in rise]
     sett = [tuple(l) for l in sett]
     planet_list = rise + sett
     list.sort(planet_list)
     return planet_list
 
-# define variables
-names = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']
 
-# LED list for each body
-LED = [(255, 255, 0, 128),
-       (50, 50, 50, 64),
-       (212, 102, 102, 0),
-       (241, 232, 184, 0),
-       (46, 118, 255, 0),
-       (255, 0, 0, 0),
-       (250, 149, 0, 0),
-       (255, 218, 198, 0),
-       (54, 65, 86, 0),
-       (70, 35, 206, 0)]
+# LED list for each light
+LED = [(0, 0, 0, 25),
+       (0, 0, 0, 50),
+       (0, 0, 0, 75),
+       (0, 0, 0, 100),
+       (0, 0, 0, 125),
+       (0, 0, 0, 150),
+       (0, 0, 0, 175),
+       (0, 0, 0, 200),
+       (0, 0, 0, 225)]
 
 # set the RTC
 def set_time_with_retry(retries):
@@ -106,6 +112,10 @@ def set_time_with_retry(retries):
         try:
             settime()
             print('settime successful')
+            oled.fill(0)
+            oled.text('settime successful',0,0,1)
+            oled.show()
+            time.sleep(1)
         except:
             retries -= 1
             time.sleep(5)
@@ -148,12 +158,15 @@ while True:
     timestamp_local = time.localtime(timestamp)
     timestamp_local_str = " ".join(map(str, timestamp_local))
     print(timestamp_local_str)
+
     oled.fill(0)
     oled.text('next:',0,0,1)
-    oled.text(planetname,0,16,1)
-    oled.text(action,64,16,1)
-    oled.text(timestamp_local_str,0,32,1)
-    oled.text(str(timestamp - now),0,48,1)
+    oled.text(planetname,35,0,1)
+    oled.text(action,95,0,1)
+    oled.text(timestamp_local_str,0,10,1)
+    oled.text('last now:',0,20,1)
+    oled.text(now_local_str,0,30,1)
+    oled.text(str(timestamp - now),0,40,1)
     oled.show()
 
     # sleep until timestamp
@@ -161,14 +174,46 @@ while True:
 
     planet_num = names.index(planetname)
     if action == "rise":
-        np[planet_num] = LED[planet_num]
+        np[planet_num * 9] = LED[planet_num]
+        np[planet_num * 9 + 1] = LED[planet_num]
+        np[planet_num * 9 + 2] = LED[planet_num]
+        np[planet_num * 9 + 3] = LED[planet_num]
+        np[planet_num * 9 + 4] = LED[planet_num]
+        np[planet_num * 9 + 5] = LED[planet_num]
+        np[planet_num * 9 + 6] = LED[planet_num]
+        np[planet_num * 9 + 7] = LED[planet_num]
+        np[planet_num * 9 + 8] = LED[planet_num]
+        np.write()
+        print(planetname)
+        print('rise')
+
         next_timestamp = planet_timestamp(planetname, 'rise')
         next_tuple = (next_timestamp, planetname, 'rise')
 
     elif action == "sett":
-        np[planet_num] = (0, 0, 0, 0)
+        np[planet_num * 9] = (0, 0, 0, 0)
+        np[planet_num * 9 + 1] = (0, 0, 0, 0)
+        np[planet_num * 9 + 2] = (0, 0, 0, 0)
+        np[planet_num * 9 + 3] = (0, 0, 0, 0)
+        np[planet_num * 9 + 4] = (0, 0, 0, 0)
+        np[planet_num * 9 + 5] = (0, 0, 0, 0)
+        np[planet_num * 9 + 6] = (0, 0, 0, 0)
+        np[planet_num * 9 + 7] = (0, 0, 0, 0)
+        np[planet_num * 9 + 8] = (0, 0, 0, 0)
+        np.write()
+        print(planetname)
+        print('set')
+
         next_timestamp = planet_timestamp(planetname, 'set')
         next_tuple = (next_timestamp, planetname, 'sett')
+
+    set_time_with_retry(3)
+
+    now = int(time.time()) # return time since the Epoch (embedded)
+    print(now)
+    now_local = time.localtime(now)
+    now_local_str = " ".join(map(str, now_local))
+    print(now_local_str)
 
     planet_list.append(next_tuple)
     list.sort(planet_list)

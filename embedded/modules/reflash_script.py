@@ -14,8 +14,8 @@ esptool.py --chip esp32 --port /dev/tty.usbserial-0001 --baud 460800 write_flash
 # put modules
 cd Documents/GitHub/time-guide/embedded/modules
 ampy --port /dev/tty.usbserial-0001 --baud 115200 put ssd1306.py
-ampy --port /dev/tty.usbserial-0001 --baud 115200 put sh1106.py
 ampy --port /dev/tty.usbserial-0001 --baud 115200 put gfx.py
+ampy --port /dev/tty.usbserial-0001 --baud 115200 put sh1106.py
 ampy --port /dev/tty.usbserial-0001 --baud 115200 put PlanetFn.py
 ampy --port /dev/tty.usbserial-0001 --baud 115200 put shapes3d.py
 
