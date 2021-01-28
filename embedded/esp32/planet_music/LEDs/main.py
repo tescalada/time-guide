@@ -91,17 +91,16 @@ def make_planet_list():
     planet_list = rise + sett
     return planet_list
 
-
 # LED list for each light
 LED = [(0, 0, 0, 25),
+       (0, 0, 0, 30),
+       (0, 0, 0, 35),
+       (0, 0, 0, 40),
+       (0, 0, 0, 45),
        (0, 0, 0, 50),
-       (0, 0, 0, 75),
-       (0, 0, 0, 100),
-       (0, 0, 0, 125),
-       (0, 0, 0, 150),
-       (0, 0, 0, 175),
-       (0, 0, 0, 200),
-       (0, 0, 0, 225)]
+       (0, 0, 0, 55),
+       (0, 0, 0, 60),
+       (0, 0, 0, 65)]
 
 # set the RTC
 def set_time_with_retry(retries):
@@ -138,20 +137,10 @@ oled.text(now_local_str,0,16,1)
 oled.show()
 time.sleep(1)
 
-# simple_cron.run()
-# # set the time once every hour
-# simple_cron.add(
-#     'Hourly',
-#     lambda *a,**k: settime(),
-#     minutes=0,
-#     seconds=0
-# )
-
-time.sleep(1)
-
 planet_list = make_planet_list()
 
 for i in range(len(names)):
+
     #clear LEDs at boot
     np[i * 9] = (0, 0, 0, 0)
     np[i * 9 + 1] = (0, 0, 0, 0)
@@ -166,33 +155,57 @@ for i in range(len(names)):
     time.sleep(0.5)
 
     #turn on LEDs for planets already above horizon
-    if planet_list[i][0] > planet_list[i + 9][0]:
-        np[i * 9] = LED[0]
-        np[i * 9 + 1] = LED[1]
-        np[i * 9 + 2] = LED[2]
-        np[i * 9 + 3] = LED[3]
-        np[i * 9 + 4] = LED[4]
-        np[i * 9 + 5] = LED[5]
-        np[i * 9 + 6] = LED[6]
-        np[i * 9 + 7] = LED[7]
-        np[i * 9 + 8] = LED[8]
-        np.write()
+    if planet_list[i][0] > planet_list[i + 9][0]: # if rise time is later than set time, it's above the horizon
         print(planet_list[i][1])
         print('above horizon')
 
-list.sort(planet_list)
+        dur_rem = planet_list[i + 9][0] - now #find time remaining until set
+        dur = (24 * 3600) - (planet_list[i][0] - planet_list[i + 9][0]) #find approximate total time above horizon
+        dur_int = int(dur / (2 * (n / len(names)) - 1)) #find duration of a single timestemp interval
+        int_rem = int(dur_rem / dur_int) # number of intervals remaining is the duration remaining divided by duration interval
+        print('duration remaining')
+        print(dur_rem)
+        print('total time above horizon')
+        print(dur)
+        print('intervals remaining')
+        print(int_rem)
+        for j in range(int_rem - 1):
+            timestamp, planetname, action = planet_list[i]
+            above_timestamp = (timestamp + dur_int * (j + 1))
+            above_tuple = (above_timestamp, planetname, 'above_set') #NEEDS TO BE FIXED - NEEDS TO ALSO HAVE ABOVE_RISE
+            planet_list.append(above_tuple)
+        if int_rem < (n / len(names)) and not int_rem == 0: #if the planet is setting, light up first int_rem LEDs
+            for j in range(int_rem):
+                np[i * 9 + j] = LED[j]
+                np.write()
+        elif int_rem == 0: #if the planet is about to set, light up first LED only
+            np[i * 9] = LED[0]
+            np.write()
+        else:
+            for j in range(2 * int(n / len(names)) - int_rem):
+                np[i * 9 + j] = LED[j]
+                np.write()
+
+list.sort(planet_list) #sort list of rise and set chronologically
 
 while True:
     timestamp, planetname, action = planet_list.pop(0)
+    print('next:')
+    print(planetname)
+    print(action)
     print(timestamp)
     timestamp_local = time.localtime(timestamp)
     timestamp_local_str = " ".join(map(str, timestamp_local))
     print(timestamp_local_str)
 
+    planet_num = names.index(planetname)
+
+    #sleep until the action
     delay = timestamp - now
+    print('delay is:')
+    print(delay)
 
     if delay > 0:
-
         oled.fill(0)
         oled.text('next',0,0,1)
         oled.text(planetname,35,0,1)
@@ -208,25 +221,62 @@ while True:
         # sleep until timestamp
         time.sleep(delay)
 
-    planet_num = names.index(planetname)
-    if action == "rise":
+    if action == 'rise':
+        print('action is:')
+        print(action)
+
+    #part 1: create list of above horizon intervals to adjust LEDs
+        dur = [item for item in planet_list if planetname in item][0][0] - timestamp #find duration above horizon in seconds by looking up the timstamp of that planet's set time in planet_list (the rise time has been popped out)
+        dur_int = int(dur / (2 * (n / len(names)) - 1)) #find duration of a single timestemp interval
+        dur_rem = dur % dur_int #find duration leftover (might not need this)
+        print('total time above horizon')
+        print(dur)
+
+        #add action timestamps for above_rise and above_set intervals between rise and set
+        for j in range(int((n / len(names)) - 1)):
+            above_rise_timestamp = int((timestamp + dur_int * (j + 1)))
+            above_rise_tuple = (above_rise_timestamp, planetname, 'above_rise')
+            planet_list.append(above_rise_tuple)
+        for j in range(int((n / len(names)) - 1)):
+            above_set_timestamp = int((timestamp + int((n / len(names)) - 1) * dur_int + dur_int * (j + 1)))
+            above_set_tuple = (above_set_timestamp, planetname, 'above_set')
+            planet_list.append(above_set_tuple)
+
+    #turn on first LED at rise action timestamp
         np[planet_num * 9] = LED[0]
-        np[planet_num * 9 + 1] = LED[1]
-        np[planet_num * 9 + 2] = LED[2]
-        np[planet_num * 9 + 3] = LED[3]
-        np[planet_num * 9 + 4] = LED[4]
-        np[planet_num * 9 + 5] = LED[5]
-        np[planet_num * 9 + 6] = LED[6]
-        np[planet_num * 9 + 7] = LED[7]
-        np[planet_num * 9 + 8] = LED[8]
         np.write()
         print(planetname)
         print('rise')
 
-        next_timestamp = planet_timestamp(planetname, 'rise')
-        next_tuple = (next_timestamp, planetname, 'rise')
+    elif action == "above_rise":
+        print('action is:')
+        print(action)
+
+        count = 0
+        for i in range(len(planet_list)):
+            count = count + planet_list[i].count(planetname)
+        LED_count = 2 * int(n / len(names)) - count
+
+        for i in range(LED_count):
+            np[planet_num * 9 + i] = LED[i]
+            np.write()
+
+    elif action == "above_set":
+        print('action is:')
+        print(action)
+
+        count = 0
+        for i in range(len(planet_list)):
+            count = count + planet_list[i].count(planetname)
+        LED_count = count
+
+        for i in range(LED_count):
+            np[planet_num * 9 + i] = LED[i]
+            np.write()
 
     elif action == "sett":
+        print('action is:')
+        print(action)
         np[planet_num * 9] = (0, 0, 0, 0)
         np[planet_num * 9 + 1] = (0, 0, 0, 0)
         np[planet_num * 9 + 2] = (0, 0, 0, 0)
@@ -240,16 +290,24 @@ while True:
         print(planetname)
         print('set')
 
-        next_timestamp = planet_timestamp(planetname, 'set')
-        next_tuple = (next_timestamp, planetname, 'sett')
+        #weird but don't get the next rise until it's set.
+        next_rise_timestamp = planet_timestamp(planetname, 'rise')
+        next_rise_tuple = (next_rise_timestamp, planetname, 'rise')
+
+        next_set_timestamp = planet_timestamp(planetname, 'set')
+        next_set_tuple = (next_set_timestamp, planetname, 'sett')
+
+        planet_list.append(next_rise_tuple)
+        planet_list.append(next_set_tuple)
 
     set_time_with_retry(3)
 
     now = int(time.time()) # return time since the Epoch (embedded)
+    print('now:')
     print(now)
     now_local = time.localtime(now)
     now_local_str = " ".join(map(str, now_local))
     print(now_local_str)
 
-    planet_list.append(next_tuple)
     list.sort(planet_list)
+
