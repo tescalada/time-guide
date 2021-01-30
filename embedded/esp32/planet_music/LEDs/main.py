@@ -38,12 +38,14 @@ np = neopixel.NeoPixel(machine.Pin(p), n, bpp=4)
 
 def do_connect():
     wlan = network.WLAN(network.STA_IF)
-    # wlan.config(dhcp_hostname = 'planet_chimes')
     wlan.active(True)
+    time.sleep(0.5)
     if not wlan.isconnected():
         wlan.config(dhcp_hostname="esp32-planet-chimes")
         wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+        time.sleep(0.5)
         while not wlan.isconnected():
+            time.sleep(0.5)
             pass
     print('network config:', wlan.ifconfig())
 
@@ -59,10 +61,10 @@ def planet_timestamp(name, action):
     url = "http://api.wolframalpha.com/v1/result?i={0}%20{1}%20next%20unix%20time%3F&appid={2}".format(name, action, WOLFRAM_API_KEY)
     print(url)
     r = requests.get(url)
-    print(r.text)
     timestamp = r.text
     timestamp = [x.strip() for x in timestamp.split(' ')]
     timestamp = int(timestamp[0]) - 946684800 #convert to embedded Epoch
+    print(timestamp)
     r.close()
     del r
     return timestamp
@@ -163,30 +165,49 @@ for i in range(len(names)):
         dur = (24 * 3600) - (planet_list[i][0] - planet_list[i + 9][0]) #find approximate total time above horizon
         dur_int = int(dur / (2 * (n / len(names)) - 1)) #find duration of a single timestemp interval
         int_rem = int(dur_rem / dur_int) # number of intervals remaining is the duration remaining divided by duration interval
+        dur_int_rem = dur % dur_int #remainder of time in final interval
         print('duration remaining')
         print(dur_rem)
-        print('total time above horizon')
-        print(dur)
         print('intervals remaining')
         print(int_rem)
-        for j in range(int_rem - 1):
-            timestamp, planetname, action = planet_list[i]
-            above_timestamp = (timestamp + dur_int * (j + 1))
-            above_tuple = (above_timestamp, planetname, 'above_set') #NEEDS TO BE FIXED - NEEDS TO ALSO HAVE ABOVE_RISE
-            planet_list.append(above_tuple)
-        if int_rem < (n / len(names)) and not int_rem == 0: #if the planet is setting, light up first int_rem LEDs
+
+        timestamp, planetname, action = planet_list[i + 9]
+        #if the planet is setting:
+        if int_rem < (n / len(names)) and not int_rem == 0:
+            # 1. find a_set timestamps
+            for j in range(int_rem - 1):
+                above_set_timestamp = int(timestamp - ((dur_int * (j + 1)) + dur_int_rem))
+                above_set_tuple = (above_set_timestamp, planetname, 'a_set')
+                planet_list.append(above_set_tuple)
+
+            # 2. light up first int_rem LEDs
             for j in range(int_rem):
                 np[i * 9 + j] = LED[j]
                 np.write()
         elif int_rem == 0: #if the planet is about to set, light up first LED only
             np[i * 9] = LED[0]
             np.write()
+
+        # if the planet is rising:
         else:
+            #1. find a_rise timestamps
+            for j in range(int_rem - int(n / len(names))):
+                above_rise_timestamp = int(timestamp - (int((n / len(names)) - 1) * dur_int + dur_int * (j + 1) + dur_int_rem))
+                above_rise_tuple = (above_rise_timestamp, planetname, 'a_rise')
+                planet_list.append(above_rise_tuple)
+            #2. find a_set timestamps
+            for j in range(int(n / len(names) - 1)):
+                above_set_timestamp = int(timestamp - (dur_int * (j + 1) + dur_int_rem))
+                above_set_tuple = (above_set_timestamp, planetname, 'a_set')
+                planet_list.append(above_set_tuple)
+            #3. light up LEDs
             for j in range(2 * int(n / len(names)) - int_rem):
                 np[i * 9 + j] = LED[j]
                 np.write()
 
 list.sort(planet_list) #sort list of rise and set chronologically
+print('planet list:')
+print(planet_list)
 
 while True:
     timestamp, planetname, action = planet_list.pop(0)
@@ -235,11 +256,11 @@ while True:
         #add action timestamps for above_rise and above_set intervals between rise and set
         for j in range(int((n / len(names)) - 1)):
             above_rise_timestamp = int((timestamp + dur_int * (j + 1)))
-            above_rise_tuple = (above_rise_timestamp, planetname, 'above_rise')
+            above_rise_tuple = (above_rise_timestamp, planetname, 'a_rise')
             planet_list.append(above_rise_tuple)
         for j in range(int((n / len(names)) - 1)):
             above_set_timestamp = int((timestamp + int((n / len(names)) - 1) * dur_int + dur_int * (j + 1)))
-            above_set_tuple = (above_set_timestamp, planetname, 'above_set')
+            above_set_tuple = (above_set_timestamp, planetname, 'a_set')
             planet_list.append(above_set_tuple)
 
     #turn on first LED at rise action timestamp
@@ -248,7 +269,7 @@ while True:
         print(planetname)
         print('rise')
 
-    elif action == "above_rise":
+    elif action == "a_rise":
         print('action is:')
         print(action)
 
@@ -261,7 +282,7 @@ while True:
             np[planet_num * 9 + i] = LED[i]
             np.write()
 
-    elif action == "above_set":
+    elif action == "a_set":
         print('action is:')
         print(action)
 
@@ -269,6 +290,16 @@ while True:
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
         LED_count = count
+
+        np[planet_num * 9] = (0, 0, 0, 0)
+        np[planet_num * 9 + 1] = (0, 0, 0, 0)
+        np[planet_num * 9 + 2] = (0, 0, 0, 0)
+        np[planet_num * 9 + 3] = (0, 0, 0, 0)
+        np[planet_num * 9 + 4] = (0, 0, 0, 0)
+        np[planet_num * 9 + 5] = (0, 0, 0, 0)
+        np[planet_num * 9 + 6] = (0, 0, 0, 0)
+        np[planet_num * 9 + 7] = (0, 0, 0, 0)
+        np[planet_num * 9 + 8] = (0, 0, 0, 0)
 
         for i in range(LED_count):
             np[planet_num * 9 + i] = LED[i]
@@ -310,4 +341,7 @@ while True:
     print(now_local_str)
 
     list.sort(planet_list)
+    print('planet list:')
+    print(planet_list)
+
 
