@@ -95,14 +95,14 @@ def make_planet_list():
 
 # LED list for each light
 LED = [(0, 0, 0, 25),
-       (0, 0, 0, 30),
-       (0, 0, 0, 35),
-       (0, 0, 0, 40),
-       (0, 0, 0, 45),
-       (0, 0, 0, 50),
-       (0, 0, 0, 55),
-       (0, 0, 0, 60),
-       (0, 0, 0, 65)]
+       (0, 0, 0, 25),
+       (0, 0, 0, 25),
+       (0, 0, 0, 25),
+       (0, 0, 0, 25),
+       (0, 0, 0, 25),
+       (0, 0, 0, 25),
+       (0, 0, 0, 25),
+       (0, 0, 0, 25)]
 
 # set the RTC
 def set_time_with_retry(retries):
@@ -181,11 +181,11 @@ for i in range(len(names)):
                 above_set_tuple = (above_set_timestamp, planetname, 'a_set')
                 planet_list.append(above_set_tuple)
 
-            # 2. light up last first int_rem LEDs for setting
+            # 2. light up last int_rem LEDs for setting
             for j in range(int_rem):
-                np[i * 9 + 9 - j] = LED[j]
+                np[i * 9 + 9 - (j + 1)] = LED[j]
                 np.write()
-        elif int_rem == 0: #if the planet is about to set, light up first LED only
+        elif int_rem == 0: #if the planet is about to set, light up last LED only
             np[i * 9 + 9 - 1] = LED[0]
             np.write()
 
@@ -284,6 +284,7 @@ while True:
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
         LED_count = 2 * int(n / len(names)) - count
+        print(count)
 
         for i in range(LED_count):
             np[planet_num * 9 + i] = LED[i]
@@ -297,6 +298,7 @@ while True:
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
         LED_count = count
+        print(count)
 
         np[planet_num * 9] = (0, 0, 0, 0)
         np[planet_num * 9 + 1] = (0, 0, 0, 0)
@@ -309,7 +311,7 @@ while True:
         np[planet_num * 9 + 8] = (0, 0, 0, 0)
 
         for i in range(LED_count):
-            np[planet_num * 9 + 9 - i] = LED[i]
+            np[planet_num * 9 + 9 - (i + 1)] = LED[i]
             np.write()
 
     elif action == "sett":
