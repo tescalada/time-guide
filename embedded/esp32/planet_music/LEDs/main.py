@@ -186,7 +186,7 @@ for i in range(len(names)):
                 np[i * 9 + 9 - j] = LED[j]
                 np.write()
         elif int_rem == 0: #if the planet is about to set, light up first LED only
-            np[i * 9 + 9] = LED[0]
+            np[i * 9 + 9 - 1] = LED[0]
             np.write()
 
         # if the planet is rising:
