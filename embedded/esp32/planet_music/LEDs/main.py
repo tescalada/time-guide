@@ -172,6 +172,7 @@ for i in range(len(names)):
         print(int_rem)
 
         timestamp, planetname, action = planet_list[i + 9]
+
         #if the planet is setting:
         if int_rem < (n / len(names)) and not int_rem == 0:
             # 1. find a_set timestamps
@@ -180,12 +181,12 @@ for i in range(len(names)):
                 above_set_tuple = (above_set_timestamp, planetname, 'a_set')
                 planet_list.append(above_set_tuple)
 
-            # 2. light up first int_rem LEDs
+            # 2. light up last first int_rem LEDs for setting
             for j in range(int_rem):
-                np[i * 9 + j] = LED[j]
+                np[i * 9 + 9 - j] = LED[j]
                 np.write()
         elif int_rem == 0: #if the planet is about to set, light up first LED only
-            np[i * 9] = LED[0]
+            np[i * 9 + 9] = LED[0]
             np.write()
 
         # if the planet is rising:
@@ -246,8 +247,9 @@ while True:
         print('action is:')
         print(action)
 
-    #part 1: create list of above horizon intervals to adjust LEDs
-        dur = [item for item in planet_list if planetname in item][0][0] - timestamp #find duration above horizon in seconds by looking up the timstamp of that planet's set time in planet_list (the rise time has been popped out)
+        #part 1: create list of above horizon intervals to adjust LEDs
+        dur = [item for item in planet_list if planetname in item][0][0] - timestamp
+        #find duration above horizon in seconds by looking up the timstamp of that planet's set time in planet_list (the rise time has been popped out)
         dur_int = int(dur / (2 * (n / len(names)) - 1)) #find duration of a single timestemp interval
         dur_rem = dur % dur_int #find duration leftover (might not need this)
         print('total time above horizon')
@@ -263,11 +265,16 @@ while True:
             above_set_tuple = (above_set_timestamp, planetname, 'a_set')
             planet_list.append(above_set_tuple)
 
-    #turn on first LED at rise action timestamp
+        #turn on first LED at rise action timestamp
         np[planet_num * 9] = LED[0]
         np.write()
         print(planetname)
         print('rise')
+
+        #get next rise timestamp and add to tuple
+        next_rise_timestamp = planet_timestamp(planetname, 'rise')
+        next_rise_tuple = (next_rise_timestamp, planetname, 'rise')
+        planet_list.append(next_rise_tuple)
 
     elif action == "a_rise":
         print('action is:')
@@ -302,7 +309,7 @@ while True:
         np[planet_num * 9 + 8] = (0, 0, 0, 0)
 
         for i in range(LED_count):
-            np[planet_num * 9 + i] = LED[i]
+            np[planet_num * 9 + 9 - i] = LED[i]
             np.write()
 
     elif action == "sett":
@@ -321,14 +328,9 @@ while True:
         print(planetname)
         print('set')
 
-        #weird but don't get the next rise until it's set.
-        next_rise_timestamp = planet_timestamp(planetname, 'rise')
-        next_rise_tuple = (next_rise_timestamp, planetname, 'rise')
-
+        #get next set timestamp and add to list
         next_set_timestamp = planet_timestamp(planetname, 'set')
         next_set_tuple = (next_set_timestamp, planetname, 'sett')
-
-        planet_list.append(next_rise_tuple)
         planet_list.append(next_set_tuple)
 
     set_time_with_retry(3)
