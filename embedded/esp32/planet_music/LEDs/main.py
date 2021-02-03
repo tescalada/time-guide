@@ -165,6 +165,9 @@ for i in range(len(names)):
         dur = (24 * 3600) - (planet_list[i][0] - planet_list[i + 9][0]) #find approximate total time above horizon
         dur_int = int(dur / (2 * (n / len(names)) - 1)) #find duration of a single timestemp interval
         int_rem = int(dur_rem / dur_int) # number of intervals remaining is the duration remaining divided by duration interval
+        if int_rem > 17:
+            int_rem = 17
+
         dur_int_rem = dur % dur_int #remainder of time in final interval
         print('duration remaining')
         print(dur_rem)
@@ -182,12 +185,21 @@ for i in range(len(names)):
                 planet_list.append(above_set_tuple)
 
             # 2. light up last int_rem LEDs for setting
-            for j in range(int_rem):
-                np[i * 9 + 9 - (j + 1)] = LED[j]
-                np.write()
+            if i % 2 == 1:
+                for j in range(int_rem):
+                    np[i * 9 + 9 - (j + 1)] = LED[j]
+                    np.write()
+            elif i % 2 == 0:
+                for j in range(int_rem):
+                    np[i * 9 + j] = LED[j]
+                    np.write()
         elif int_rem == 0: #if the planet is about to set, light up last LED only
-            np[i * 9 + 9 - 1] = LED[0]
-            np.write()
+            if i % 2 == 1:
+                np[i * 9 + 9 - 1] = LED[0]
+                np.write()
+            elif i % 2 == 0:
+                np[i * 9] = LED[0]
+                np.write()
 
         # if the planet is rising:
         else:
@@ -203,8 +215,12 @@ for i in range(len(names)):
                 planet_list.append(above_set_tuple)
             #3. light up LEDs
             for j in range(2 * int(n / len(names)) - int_rem):
-                np[i * 9 + j] = LED[j]
-                np.write()
+                if i % 2 == 1:
+                    np[i * 9 + j] = LED[j]
+                    np.write()
+                elif i % 2 == 0:
+                    np[i * 9 + 9 - (j + 1)] = LED[j]
+                    np.write()
 
 list.sort(planet_list) #sort list of rise and set chronologically
 print('planet list:')
@@ -266,8 +282,13 @@ while True:
             planet_list.append(above_set_tuple)
 
         #turn on first LED at rise action timestamp
-        np[planet_num * 9] = LED[0]
-        np.write()
+        if planet_num % 2 == 1:
+            np[planet_num * 9] = LED[0]
+            np.write()
+        if planet_num % 2 == 0:
+            np[planet_num * 9 + 9 - 1] = LED[0]
+            np.write()
+
         print(planetname)
         print('rise')
 
@@ -284,11 +305,16 @@ while True:
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
         LED_count = 2 * int(n / len(names)) - count
+        print('count is:')
         print(count)
 
         for i in range(LED_count):
-            np[planet_num * 9 + i] = LED[i]
-            np.write()
+            if planet_num % 2 == 1:
+                np[planet_num * 9 + i] = LED[i]
+                np.write()
+            elif planet_num % 2 == 0:
+                np[planet_num * 9 + 9 - (i - 1)] = LED[i]
+                np.write()
 
     elif action == "a_set":
         print('action is:')
@@ -298,6 +324,7 @@ while True:
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
         LED_count = count
+        print('count is:')
         print(count)
 
         np[planet_num * 9] = (0, 0, 0, 0)
@@ -311,8 +338,12 @@ while True:
         np[planet_num * 9 + 8] = (0, 0, 0, 0)
 
         for i in range(LED_count):
-            np[planet_num * 9 + 9 - (i + 1)] = LED[i]
-            np.write()
+            if planet_num % 2 == 1:
+                np[planet_num * 9 + 9 - (i + 1)] = LED[i]
+                np.write()
+            if planet_num % 2 == 0:
+                np[planet_num * 9 + i] = LED[i]
+                np.write()
 
     elif action == "sett":
         print('action is:')
