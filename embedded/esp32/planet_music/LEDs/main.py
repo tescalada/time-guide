@@ -267,7 +267,7 @@ while True:
         dur = [item for item in planet_list if planetname in item][0][0] - timestamp
         #find duration above horizon in seconds by looking up the timstamp of that planet's set time in planet_list (the rise time has been popped out)
         dur_int = int(dur / (2 * (n / len(names)) - 1)) #find duration of a single timestemp interval
-        dur_rem = dur % dur_int #find duration leftover (might not need this)
+        #dur_rem = dur % dur_int #find duration leftover (might not need this)
         print('total time above horizon')
         print(dur)
 
@@ -304,7 +304,7 @@ while True:
         count = 0
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
-        LED_count = 2 * int(n / len(names)) - count
+        LED_count = 2 * int(n / len(names)) - (count - 1) # subtract the additional count for the next rise
         print('count is:')
         print(count)
 
@@ -313,7 +313,7 @@ while True:
                 np[planet_num * 9 + i] = LED[i]
                 np.write()
             elif planet_num % 2 == 0:
-                np[planet_num * 9 + 9 - (i - 1)] = LED[i]
+                np[planet_num * 9 + 9 - (i + 1)] = LED[i]
                 np.write()
 
     elif action == "a_set":
