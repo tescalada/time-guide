@@ -292,11 +292,6 @@ while True:
         print(planetname)
         print('rise')
 
-        #get next rise timestamp and add to tuple
-        next_rise_timestamp = planet_timestamp(planetname, 'rise')
-        next_rise_tuple = (next_rise_timestamp, planetname, 'rise')
-        planet_list.append(next_rise_tuple)
-
     elif action == "a_rise":
         print('action is:')
         print(action)
@@ -323,7 +318,7 @@ while True:
         count = 0
         for i in range(len(planet_list)):
             count = count + planet_list[i].count(planetname)
-        LED_count = count
+        LED_count = count - 1
         print('count is:')
         print(count)
 
@@ -361,10 +356,23 @@ while True:
         print(planetname)
         print('set')
 
-        #get next set timestamp and add to list
-        next_set_timestamp = planet_timestamp(planetname, 'set')
-        next_set_tuple = (next_set_timestamp, planetname, 'sett')
-        planet_list.append(next_set_tuple)
+
+        if [item for item in planet_list if planetname in item and action in item][0][2] == 'rise':
+            #get next set timestamp and add to list
+            next_set_timestamp = planet_timestamp(planetname, 'set')
+            next_set_tuple = (next_set_timestamp, planetname, 'sett')
+            planet_list.append(next_set_tuple)
+
+        else:
+            #get next rise timestamp and add to tuple if there isn't a rise
+            next_rise_timestamp = planet_timestamp(planetname, 'rise')
+            next_rise_tuple = (next_rise_timestamp, planetname, 'rise')
+            planet_list.append(next_rise_tuple)
+
+            #get next set timestamp and add to list
+            next_set_timestamp = planet_timestamp(planetname, 'set')
+            next_set_tuple = (next_set_timestamp, planetname, 'sett')
+            planet_list.append(next_set_tuple)
 
     set_time_with_retry(3)
 
@@ -378,5 +386,3 @@ while True:
     list.sort(planet_list)
     print('planet list:')
     print(planet_list)
-
-
