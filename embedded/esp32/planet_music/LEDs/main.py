@@ -296,10 +296,12 @@ while True:
         print('action is:')
         print(action)
 
+        #count remaining instances of a_rise
         count = 0
         for i in range(len(planet_list)):
-            count = count + planet_list[i].count(planetname)
-        LED_count = 2 * int(n / len(names)) - (count - 1) # subtract the additional count for the next rise
+            if planet_list[i][1] == planetname and planet_list[i][2] == action:
+                count += 1
+        LED_count = int(n / len(names)) - count
         print('count is:')
         print(count)
 
@@ -317,8 +319,9 @@ while True:
 
         count = 0
         for i in range(len(planet_list)):
-            count = count + planet_list[i].count(planetname)
-        LED_count = count - 1
+            if planet_list[i][1] == planetname and planet_list[i][2] == action:
+                count += 1
+        LED_count = count + 1
         print('count is:')
         print(count)
 
@@ -357,8 +360,8 @@ while True:
         print('set')
 
 
-        if [item for item in planet_list if planetname in item and action in item][0][2] == 'rise':
-            #get next set timestamp and add to list
+        if [item for item in planet_list if planetname in item and 'rise' in item][0][2] == 'rise':
+            #get next set timestamp and add to list if there's already a 'rise' timestamp
             next_set_timestamp = planet_timestamp(planetname, 'set')
             next_set_tuple = (next_set_timestamp, planetname, 'sett')
             planet_list.append(next_set_tuple)
